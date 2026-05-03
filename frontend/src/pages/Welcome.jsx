@@ -35,7 +35,7 @@ export default function Welcome() {
   return (
     <div
       data-testid="welcome-screen"
-      className="relative mx-auto flex min-h-screen w-full max-w-[440px] flex-col bg-white px-6 pt-5 pb-6 sm:max-w-[460px] sm:rounded-none"
+      className="relative mx-auto flex min-h-screen w-full max-w-[440px] flex-col bg-white px-6 pt-5 pb-6"
     >
       {/* Top bar */}
       <div className="flex items-center justify-end" data-testid="welcome-topbar">
