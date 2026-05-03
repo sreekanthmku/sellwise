@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #ffffff;
+    color: #111827;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
+
+/* Suzuki SellWise palette */
+:root {
+    --suzuki-red: #e60012;
+    --suzuki-blue: #1f3a93;
+    --suzuki-blue-strong: #2540c8;
+    --action-blue: #2563eb;
+    --action-blue-hover: #1d4fd8;
+    --soft-blue-bg: #eef2ff;
+    --soft-blue-bg-2: #e0e7ff;
+    --text-strong: #0f172a;
+    --text-muted: #6b7280;
+    --card-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 3.9%;
+        --primary: 0 0% 9%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 0 0% 96.1%;
+        --secondary-foreground: 0 0% 9%;
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
+        --accent: 0 0% 96.1%;
+        --accent-foreground: 0 0% 9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 3.9%;
+        --radius: 0.5rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* Welcome screen specific helpers */
+.sw-card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid #f1f5f9;
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+.sw-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+}
+
+.sw-icon-tile {
+    background: var(--soft-blue-bg);
+    color: var(--action-blue);
+    border-radius: 12px;
+}
+
+.sw-cta {
+    background: var(--action-blue);
+    color: #fff;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+.sw-cta:hover {
+    background: var(--action-blue-hover);
+}
+.sw-cta:active {
+    transform: translateY(1px);
+}
+
+.sw-lang-pill {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: var(--action-blue);
+    border-radius: 9999px;
+    transition: background-color 160ms ease, border-color 160ms ease;
+}
+.sw-lang-pill:hover {
+    background: #f8fafc;
+    border-color: #dbe3ee;
+}
+
+@layer base {
+    [data-debug-wrapper="true"] {
+        display: contents !important;
+    }
+
+    [data-debug-wrapper="true"] > * {
+        margin-left: inherit;
+        margin-right: inherit;
+        margin-top: inherit;
+        margin-bottom: inherit;
+        padding-left: inherit;
+        padding-right: inherit;
+        padding-top: inherit;
+        padding-bottom: inherit;
+        column-gap: inherit;
+        row-gap: inherit;
+        gap: inherit;
+        border-left-width: inherit;
+        border-right-width: inherit;
+        border-top-width: inherit;
+        border-bottom-width: inherit;
+        border-left-style: inherit;
+        border-right-style: inherit;
+        border-top-style: inherit;
+        border-bottom-style: inherit;
+        border-left-color: inherit;
+        border-right-color: inherit;
+        border-top-color: inherit;
+        border-bottom-color: inherit;
+    }
+}
