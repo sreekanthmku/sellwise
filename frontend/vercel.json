@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/guide-api/:path*",
+      "destination": "http://146.190.14.175/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

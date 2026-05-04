@@ -1,9 +1,8 @@
 import { Users, Phone, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
+import { AppScreen } from "@/components/AppScreen";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { SuzukiSMark, SuzukiWordmark } from "@/components/SuzukiLogo";
-import { ShowroomIllustration } from "@/components/ShowroomIllustration";
 import { EligereLogo } from "@/components/EligereLogo";
 
 const FeatureCard = ({ icon: Icon, title, subtitle, testid }) => (
@@ -32,32 +31,45 @@ export default function Welcome() {
   };
 
   return (
-    <div
-      data-testid="welcome-screen"
-      className="relative mx-auto flex min-h-screen w-full max-w-[440px] flex-col bg-white px-6 pt-5 pb-6"
+    <AppScreen
+      screenTestId="welcome-screen"
+      showHeader={false}
+      mainClassName="pb-6"
     >
       {/* Top bar */}
-      <div className="flex items-center justify-end" data-testid="welcome-topbar">
+      <div
+        className="flex items-center justify-end pt-[max(1.25rem,env(safe-area-inset-top,0px))]"
+        data-testid="welcome-topbar"
+      >
         <LanguageSwitcher />
       </div>
 
       {/* Brand */}
       <div className="mt-2 flex flex-col items-center" data-testid="welcome-brand">
-        <SuzukiSMark size={86} />
-        <SuzukiWordmark className="mt-1 text-[34px] leading-none" />
+        <img
+          src={`${process.env.PUBLIC_URL}/Suzuki_logo_2025.svg`}
+          alt="Suzuki"
+          className="h-auto w-full max-w-[130px] object-contain"
+          decoding="async"
+        />
         <span
-          className="font-suzuki mt-1 text-[26px] font-extrabold leading-none text-[color:var(--suzuki-red)]"
+          className="font-suzuki mt-2 text-[26px] font-extrabold leading-none text-[color:var(--suzuki-red)]"
         >
           {t.appName}
         </span>
       </div>
 
-      {/* Showroom illustration */}
+      {/* Hero */}
       <div
         className="mt-4 flex items-center justify-center"
         data-testid="welcome-illustration"
       >
-        <ShowroomIllustration className="h-auto w-full max-w-[360px]" />
+        <img
+          src={`${process.env.PUBLIC_URL}/login-hero.png`}
+          alt="Suzuki dealer with vehicle and growth chart"
+          className="h-auto w-full max-w-[360px] rounded-[12px] object-cover object-center shadow-[0_4px_24px_rgba(15,23,42,0.08)]"
+          decoding="async"
+        />
       </div>
 
       {/* Headline */}
@@ -112,7 +124,7 @@ export default function Welcome() {
         type="button"
         onClick={handleGetStarted}
         data-testid="get-started-btn"
-        className="sw-cta font-suzuki mt-6 w-full rounded-full px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] shadow-[0_8px_18px_rgba(37,99,235,0.28)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
+        className="font-suzuki mt-6 w-full rounded-[12px] bg-[#2563EA] px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] text-white transition-[background-color,transform] duration-[160ms] ease-out hover:bg-[#1e40ae] active:translate-y-px focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
       >
         {t.getStarted}
       </button>
@@ -125,8 +137,8 @@ export default function Welcome() {
         <span className="text-[13.5px] font-semibold text-[color:#374151]">
           {t.poweredBy}
         </span>
-        <EligereLogo />
+        <EligereLogo className="max-h-6 max-w-[96px]" />
       </div>
-    </div>
+    </AppScreen>
   );
 }

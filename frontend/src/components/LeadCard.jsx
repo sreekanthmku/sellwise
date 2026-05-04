@@ -1,4 +1,5 @@
 import { Phone, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { StatusTag } from "@/components/StatusTag";
@@ -11,18 +12,18 @@ const formatLastContact = (lastContact, t) => {
   return `${value} ${t.timeAgo.days}`;
 };
 
-const ActionCircle = ({ children, color, testid, onClick }) => (
+export const ActionCircle = ({ children, color, testid, onClick }) => (
   <button
     type="button"
     onClick={onClick}
     data-testid={testid}
-    className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-md transition-transform hover:scale-105 ${color}`}
+    className={`flex h-12 w-12 items-center justify-center rounded-full text-white transition-transform hover:scale-105 ${color}`}
   >
     {children}
   </button>
 );
 
-const RecommendedPill = () => {
+export const RecommendedPill = () => {
   const { t } = useLanguage();
   return (
     <span
@@ -36,18 +37,20 @@ const RecommendedPill = () => {
 
 export const LeadCard = ({ lead, variant = "human" }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   return (
     <article
       data-testid={`lead-card-${lead.id}`}
-      className="overflow-hidden rounded-2xl border border-[#F1F2F5] bg-white shadow-[0_2px_8px_rgba(15,23,42,0.05)]"
+      className="overflow-hidden rounded-2xl border border-[#e4e4e4] bg-white"
     >
       <div className="px-4 pt-4 pb-4">
         {/* Top row: name + priority */}
         <div className="flex items-start justify-between gap-3">
           <button
             type="button"
-            className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2"
+            onClick={() => navigate(`/leads/${lead.id}`)}
+            className="font-body text-left text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2"
             data-testid={`lead-name-${lead.id}`}
           >
             {lead.name}
@@ -60,10 +63,15 @@ export const LeadCard = ({ lead, variant = "human" }) => {
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 
-        {/* Tags */}
+        {/* Tags: aim for ~3 per row; wrap to a second row when needed; text never clipped */}
         <div className="mt-3 flex flex-wrap gap-2">
           {lead.tags.map((tagKey) => (
-            <StatusTag key={tagKey} tagKey={tagKey} />
+            <div
+              key={tagKey}
+              className="box-border min-w-0 max-w-full flex-[1_1_calc(33.333%-0.36rem)]"
+            >
+              <StatusTag tagKey={tagKey} />
+            </div>
           ))}
         </div>
 
@@ -80,6 +88,7 @@ export const LeadCard = ({ lead, variant = "human" }) => {
               <ActionCircle
                 color="bg-[color:var(--blue-600)]"
                 testid={`call-btn-${lead.id}`}
+                onClick={() => navigate(`/leads/${lead.id}/call`)}
               >
                 <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
               </ActionCircle>

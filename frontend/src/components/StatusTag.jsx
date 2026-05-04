@@ -57,10 +57,12 @@ export const StatusTag = ({ tagKey }) => {
   return (
     <span
       data-testid={`tag-${tagKey}`}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium leading-tight ${cfg.bg} ${cfg.text}`}
+      className={`flex min-w-0 w-full items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-medium leading-snug ${cfg.bg} ${cfg.text}`}
     >
       <Icon className={`h-3.5 w-3.5 shrink-0 ${cfg.iconColor}`} strokeWidth={2} />
-      <span className="whitespace-pre-line text-center">{t.tags[tagKey]}</span>
+      <span className="min-w-0 break-words text-center [overflow-wrap:anywhere]">
+        {t.tags[tagKey]}
+      </span>
     </span>
   );
 };

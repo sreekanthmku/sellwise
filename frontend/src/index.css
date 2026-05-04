@@ -6,7 +6,15 @@
 @font-face {
     font-family: "SuzukiPro";
     src: url("./fonts/SuzukiPRO-Regular.ttf") format("truetype");
-    font-weight: 400 900;
+    font-weight: 400 599;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "SuzukiPro";
+    src: url("./fonts/SuzukiPROBold.ttf") format("truetype");
+    font-weight: 600 900;
     font-style: normal;
     font-display: swap;
 }
@@ -43,10 +51,19 @@
     font-display: swap;
 }
 
+html {
+    background-color: #f9fafc;
+}
+
 html,
 body,
 #root {
     height: 100%;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
 }
 
 body {
@@ -55,8 +72,17 @@ body {
         Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #ffffff;
     color: #111827;
+}
+
+/* App-wide: hide scrollbars (mobile PWA); touch / wheel scrolling unchanged */
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
 }
 
 .font-suzuki {
@@ -86,7 +112,18 @@ code {
     --soft-blue-bg-2: #e9effd;
     --text-strong: #161616;
     --text-muted: #5a5a5a;
+    --app-canvas: #f9fafc;
     --card-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+
+    /* Layout: fixed action bars above BottomNav (see CallDetails) */
+    --sellwise-app-max-width: 440px;
+    /* ~BottomNav pt-3 + pb-4 + icon row + label */
+    --sellwise-bottom-nav-height: 5.25rem;
+    /* Call details actions: border + pt-3 + pb-3 + 44px buttons */
+    --sellwise-call-details-actions-height: 4.5rem;
+    --sellwise-call-details-scroll-pad-bottom: calc(
+        var(--sellwise-call-details-actions-height) + var(--sellwise-bottom-nav-height)
+    );
 
     /* Action */
     --blue-600: #2563ea;
@@ -157,7 +194,8 @@ code {
         @apply border-border;
     }
     body {
-        @apply bg-background text-foreground;
+        @apply text-foreground;
+        background-color: var(--blue-100);
     }
 }
 

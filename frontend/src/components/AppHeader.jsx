@@ -1,5 +1,4 @@
 import { Search, User } from "lucide-react";
-import { SuzukiSMark } from "@/components/SuzukiLogo";
 import { LangIconButton } from "@/components/LangIconButton";
 
 const IconButton = ({ children, label, testid, onClick }) => (
@@ -17,10 +16,17 @@ const IconButton = ({ children, label, testid, onClick }) => (
 export const AppHeader = () => (
   <header
     data-testid="app-header"
-    className="flex items-center justify-between px-6 pt-4 pb-3"
+    className="flex shrink-0 items-center justify-between border-b border-[#e4e4e4] bg-white px-[16px] pb-2 pt-[max(12px,env(safe-area-inset-top,0px))]"
   >
     <div className="flex items-center gap-2" data-testid="app-header-brand">
-      <SuzukiSMark size={36} />
+      <img
+        src={`${process.env.PUBLIC_URL || ""}/Suzuki_logo_icon.svg`}
+        alt="Suzuki"
+        width={36}
+        height={36}
+        className="h-9 w-9 shrink-0 object-contain"
+        decoding="async"
+      />
       <span className="font-suzuki text-[24px] font-bold leading-none text-[color:var(--suzuki-red)]">
         SellWise
       </span>

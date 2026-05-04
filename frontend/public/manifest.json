@@ -1,25 +1,33 @@
 {
+  "id": "/",
   "short_name": "SellWise",
   "name": "Suzuki SellWise",
   "description": "Your daily sales companion to manage leads, make guided calls, get feedback, and access product knowledge instantly.",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/Suzuki_logo_icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1F3A93",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "lang": "en"
 }

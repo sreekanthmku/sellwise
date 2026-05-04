@@ -17,22 +17,27 @@ export const BottomNav = () => {
   return (
     <nav
       data-testid="bottom-nav"
-      className="sticky bottom-0 left-0 right-0 mt-auto bg-[color:var(--suzuki-blue)] px-4 pt-3 pb-4"
+      className="sticky bottom-0 left-0 right-0 z-40 mt-auto bg-[color:var(--suzuki-blue)] px-4 pt-3 pb-4"
     >
       <ul className="grid grid-cols-4">
         {navItems.map(({ key, path, icon: Icon, testid }) => {
           const active =
-            pathname === path || (key === "leadsTab" && pathname === "/leads");
+            pathname === path ||
+            (key === "leadsTab" && pathname.startsWith("/leads"));
           return (
             <li key={key} className="flex">
               <button
                 type="button"
                 data-testid={testid}
-                onClick={() => path !== pathname && path === "/leads" && navigate(path)}
+                onClick={() => {
+                  const target = key === "leadsTab" ? "/leads" : path;
+                  if (pathname === target) return;
+                  navigate(target);
+                }}
                 className={`flex w-full flex-col items-center gap-1 py-1 transition-colors ${
                   active
-                    ? "text-white"
-                    : "text-[color:var(--blue-500)] hover:text-white"
+                    ? "text-[color:var(--blue-500)]"
+                    : "text-white hover:text-[color:var(--blue-500)]"
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={2.25} />

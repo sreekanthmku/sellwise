@@ -1,6 +1,13 @@
 /* Suzuki SellWise PWA Service Worker */
-const CACHE_NAME = "sellwise-cache-v1";
-const PRECACHE_URLS = ["/", "/index.html", "/manifest.json"];
+const CACHE_NAME = "sellwise-cache-v2";
+const PRECACHE_URLS = [
+  "/",
+  "/index.html",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/Suzuki_logo_icon.svg",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

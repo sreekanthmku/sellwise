@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="38" fill="#ffffff"/>
+  <rect x="14" y="14" width="164" height="164" rx="28" fill="#f8fafc"/>
+  <text x="96" y="118" text-anchor="middle" font-family="Manrope, Helvetica, Arial, sans-serif" font-size="44" font-weight="800" fill="#e11d48" letter-spacing="-1.5">SellWise</text>
+  <circle cx="34" cy="158" r="6" fill="#1d4ed8"/>
+</svg>
