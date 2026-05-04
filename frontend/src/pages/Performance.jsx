@@ -37,10 +37,10 @@ export default function Performance() {
       mainBgClass="bg-[#F7F8FB]"
       showBottomNav
     >
-      <div className="pt-1">
+      <div className="pt-[16px] pb-0">
         <h1
           data-testid="performance-page-title"
-          className="font-suzuki text-[24px] font-bold leading-tight text-[color:var(--gray-300)]"
+          className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--gray-300)]"
         >
           {t.performance.title}
         </h1>

@@ -190,7 +190,7 @@ export function ScheduleAiAccordion({ queuedLeadCount = 0 }) {
             type="button"
             data-testid="schedule-ai-queue-btn"
             onClick={handleQueueFollowUps}
-            className="font-body mt-4 w-full rounded-[12px] bg-[#2563EA] py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-[color:var(--blue-700)]"
+            className="font-body mt-4 w-full rounded-full bg-[#2563EA] py-1.5 text-[14px] font-semibold text-white transition-colors hover:bg-[color:var(--blue-700)]"
           >
             {t.scheduleQueueFollowUps}
           </button>

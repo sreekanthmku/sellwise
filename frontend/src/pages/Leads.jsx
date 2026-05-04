@@ -19,10 +19,10 @@ export default function Leads() {
       mainBgClass="bg-[#F7F8FB]"
       showBottomNav
     >
-      <div className="pt-2">
+      <div className="pt-[16px] pb-0">
         <h1
           data-testid="page-title"
-          className="font-suzuki text-[22px] font-bold leading-none text-[color:var(--gray-300)]"
+          className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--gray-300)]"
         >
           {t.myLeads}
         </h1>

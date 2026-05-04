@@ -76,7 +76,7 @@ function AssistantBubble({ children }) {
   return (
     <div className="flex justify-start">
       <div
-        className="max-w-[min(100%,20rem)] rounded-2xl border border-[#e4e4e4] bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+        className="max-w-[min(100%,20rem)] rounded-[12px] border border-[#e4e4e4] bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
         data-testid="guide-bubble-assistant"
       >
         {children}
@@ -89,7 +89,7 @@ function UserBubble({ text }) {
   return (
     <div className="flex justify-end">
       <div
-        className="max-w-[min(100%,20rem)] rounded-2xl bg-[color:var(--suzuki-blue)] px-3.5 py-3 font-body text-[14px] leading-relaxed text-white"
+        className="max-w-[min(100%,20rem)] rounded-[12px] bg-[color:var(--suzuki-blue)] px-3.5 py-3 font-body text-[14px] leading-relaxed text-white"
         data-testid="guide-bubble-user"
       >
         {text}
@@ -240,10 +240,10 @@ export default function Guide() {
           {guideSessionId}
         </span>
       ) : null}
-      <div className="shrink-0 pt-1">
+      <div className="shrink-0 pt-[16px] pb-0">
         <h1
           data-testid="guide-page-title"
-          className="font-suzuki text-[24px] font-bold leading-tight text-[color:var(--gray-300)]"
+          className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--gray-300)]"
         >
           {t.guide.title}
         </h1>
@@ -315,7 +315,7 @@ export default function Guide() {
       </div>
 
       <div
-        className="-mx-[16px] shrink-0 border-t border-[#e5e7eb] bg-[#F7F8FB] px-[16px] pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]"
+        className="-mx-[16px] shrink-0 border-t border-[#e5e7eb] bg-[#F7F8FB] px-[16px] pb-[14px] pt-[10px]"
         data-testid="guide-composer"
       >
         {/* Suggested questions: hidden for now; keep markup + `suggestions` for easy restore */}
@@ -351,7 +351,7 @@ export default function Guide() {
             data-testid="guide-input"
             disabled={composerDisabled}
             className={cn(
-              "min-h-[44px] flex-1 rounded-full border border-[#d1d5db] bg-white py-2.5 pl-5 pr-5 font-body text-[14px] text-[color:var(--gray-300)]",
+              "min-h-[44px] flex-1 rounded-[12px] border border-[#d1d5db] bg-white py-2.5 pl-5 pr-5 font-body text-[14px] text-[color:var(--gray-300)]",
               "placeholder:text-[#6b7280] focus:border-[color:var(--blue-600)] focus:outline-none focus:ring-1 focus:ring-[color:var(--blue-600)]/30",
               "disabled:cursor-not-allowed disabled:bg-[#f9fafb]",
             )}

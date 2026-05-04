@@ -14,6 +14,7 @@ import CallFeedback from "@/pages/CallFeedback";
 import ActiveCall from "@/pages/ActiveCall";
 import Performance from "@/pages/Performance";
 import Guide from "@/pages/Guide";
+import { DocumentChrome } from "@/components/DocumentChrome";
 
 function App() {
   useEffect(() => {
@@ -37,6 +38,7 @@ function App() {
     <LanguageProvider>
       <div className="App">
         <BrowserRouter>
+          <DocumentChrome />
           <VobizProvider>
             <CallShell />
             <LeadsDataProvider>

@@ -61,7 +61,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
         </div>
 
         {/* Interested in */}
-        <p className="mt-2 text-[14px] text-[color:var(--gray-300)]">
+        <p className="mt-0 text-[14px] text-[color:var(--gray-300)]">
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 

@@ -27,7 +27,7 @@ export const AppHeader = () => (
         className="h-9 w-9 shrink-0 object-contain"
         decoding="async"
       />
-      <span className="font-suzuki text-[24px] font-bold leading-none text-[color:var(--suzuki-red)]">
+      <span className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--suzuki-red)]">
         SellWise
       </span>
     </div>

@@ -249,6 +249,8 @@ export default function ActiveCall() {
       mainTestId="active-call-main"
       showHeader={false}
       showBottomNav={false}
+      lockViewportHeight
+      screenClassName="max-w-none bg-[#003388]"
       mainBgClass="bg-[#003388]"
       mainClassName="flex min-h-0 flex-1 flex-col text-white"
     >
@@ -336,7 +338,7 @@ export default function ActiveCall() {
       <div className="min-h-0 flex-1" aria-hidden />
 
       {/* Call controls — equal gaps, side buttons same size, center ~18% larger; comfy inset from bottom */}
-      <div className="flex shrink-0 items-center justify-center gap-12 pb-14 pt-6 sm:gap-14 sm:pb-16">
+      <div className="flex shrink-0 items-center justify-center gap-12 pt-6 pb-[max(3.5rem,env(safe-area-inset-bottom,0px))] sm:gap-14 sm:pb-[max(4rem,env(safe-area-inset-bottom,0px))]">
         <button
           type="button"
           data-testid="active-call-mute"

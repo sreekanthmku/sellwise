@@ -17,6 +17,8 @@ export function AppScreen({
   showBottomNav = false,
   /** Override auto: lock height when bottom nav is on (fixes nested scroll / “content won’t load”) */
   lockViewportHeight,
+  /** Merged onto the outer shell (e.g. full-bleed + background overrides). */
+  screenClassName = "",
   mainBgClass = "",
   mainClassName = "",
 }) {
@@ -30,6 +32,7 @@ export function AppScreen({
         viewportLocked
           ? "h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden"
           : "min-h-screen",
+        screenClassName,
       )}
     >
       {showHeader ? <AppHeader /> : null}
