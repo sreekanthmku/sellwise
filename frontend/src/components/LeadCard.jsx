@@ -46,7 +46,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
       data-testid={`lead-card-${lead.id}`}
       className="overflow-hidden rounded-2xl border border-[#e4e4e4] bg-white"
     >
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-4 pb-5">
         {/* Top row: name + priority */}
         <div className="flex items-start justify-between gap-3">
           <button
@@ -82,7 +82,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
               {formatLastContact(lead.lastContact, t)}
             </span>
           </p>
-          <div className="flex items-start gap-3">
+          <div className="mr-6 flex items-start gap-7">
             <div className="relative flex flex-col items-center">
               <ActionCircle
                 color="bg-[color:var(--blue-600)]"
@@ -97,7 +97,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
                 </div>
               ) : null}
             </div>
-            <div className="relative flex flex-col items-center">
+            <div className="relative ml-[10px] flex flex-col items-center">
               <ActionCircle
                 color="bg-[color:var(--success)]"
                 testid={`whatsapp-btn-${lead.id}`}
