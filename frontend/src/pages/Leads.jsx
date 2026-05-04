@@ -13,14 +13,14 @@ const TabButton = ({ active, onClick, icon: Icon, label, count, testid }) => (
     onClick={onClick}
     data-testid={testid}
     aria-pressed={active}
-    className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-2.5 text-[13px] font-semibold transition-colors ${
+    className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-2.5 text-[13px] font-semibold transition-colors ${
       active
         ? "bg-[color:var(--blue-600)] text-white shadow-[0_4px_12px_rgba(37,99,234,0.28)]"
         : "bg-white text-[color:var(--blue-600)] border border-[color:var(--blue-300)]"
     }`}
   >
     <Icon className="h-4 w-4 shrink-0" strokeWidth={2.25} />
-    <span>{label}</span>
+    <span className="min-w-0 truncate">{label}</span>
     <span
       className={`flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
         active ? "bg-[color:var(--suzuki-blue)] text-white" : "bg-[color:var(--blue-300)] text-[color:var(--blue-600)]"
@@ -92,7 +92,7 @@ export default function Leads() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-4 flex gap-3 px-6" data-testid="leads-tabs">
+      <div className="mt-4 flex gap-2 px-5" data-testid="leads-tabs">
         <TabButton
           active={tab === "human"}
           onClick={() => switchTab("human")}
