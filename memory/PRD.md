@@ -1,56 +1,65 @@
 # Suzuki SellWise PWA — PRD
 
 ## Original problem statement
-> Lets create a PWA. No backend. I will give you screen by screen. It should be pixel perfect. Same color and fonts. here is the first screen.
+> Lets create a PWA. No backend. I will give you screen by screen. It should be pixel perfect. Same color and fonts.
 
-User is delivering screens one-by-one (mockups attached as images). The app must be:
-- A PWA (installable, manifest, service worker, offline-capable)
-- Frontend-only (no backend)
-- Pixel-perfect to the supplied mockups (matching colours, fonts, spacing)
-- Mobile-first but also "good on desktop"
+User delivers screens one-by-one as image mockups. Frontend-only, installable PWA, mobile-first, looks good on desktop too.
 
-## User explicit choices
-- Full PWA setup from screen 1
-- Languages: English + Bahasa
-- "Get Started" → goes to next screen (will be supplied later)
-- Looks good on desktop too
-- Real assets (Suzuki logo, showroom illustration, eligere logo) will be provided by user later
+## Brand & design system
+- **Fonts** (custom, self-hosted from `src/fonts/`):
+  - **SuzukiPro** — page titles ONLY (per user instruction)
+  - **Maison Neue** (Light 300, Book 400, Bold 700) — body / everything else
+  - **Maison Neue Mono** — code
+- **4-pt grid** for spacing, typography, border-radius (8/12/16/20/24)
+- **Colour palette** (CSS variables in `src/index.css`):
+  - Primary: Suzuki Red `#DE0039`, Suzuki Blue `#023590`
+  - Action: Blue-600 `#2563EA`, Blue-700 `#1E40AE`
+  - Priority: High `#FE6464`, Medium `#FE9F4D`, Low `#B0B0B0`
+  - Base: Error `#F71818`, Warning `#F5641D`, Success `#39C062`, Disabled `#CCCCCC`, Gray-100 `#CECECE`, Gray-200 `#5A5A5A`, Gray-300 `#161616`
+  - Secondary: Blue-100..700, Red-100..600, Purple-100..600, Yellow-100..600, Green-100..600
+- Languages: English + Bahasa Indonesia, persisted via `localStorage` key `sellwise.lang`
+- Layout: mobile-first container `max-w-[440px]`, centred on desktop
 
 ## Architecture
-- React 19 (CRA + craco) frontend, no backend
-- React Router v7 for screen-by-screen flow
+- React 19 (CRA + craco), React Router v7
 - Tailwind CSS + shadcn/ui (`dropdown-menu`)
-- Lucide-react icons
-- Custom Context-based i18n (en, id) with localStorage persistence (`sellwise.lang`)
-- Service worker at `/service-worker.js` (cache-first with network-update)
-- Web App Manifest at `/manifest.json`
-- Manrope as the primary font (Google Fonts)
+- Lucide-react icons + custom SVG (Suzuki S, showroom, eligere, WhatsApp)
+- Custom Context-based i18n
+- Service worker `/service-worker.js` with cache-first strategy
+- Web App Manifest `/manifest.json`
 
-## Implemented (Feb 2026)
-- **Welcome screen** (`/app/frontend/src/pages/Welcome.jsx`) — pixel-mapped to mockup
-  - Top bar with English/Bahasa language pill (shadcn dropdown)
-  - SUZUKI / SellWise brand block (SVG placeholder for the S-mark)
-  - Showroom illustration (SVG placeholder — banners SPEED/BIKE/FUTURE, 5 bikes, salesman)
-  - Headline "Convert More Leads. Sell Smarter." (Manrope ExtraBold, suzuki-blue)
-  - Description copy
-  - Three feature cards: Leads, Smart Calling, Performance (Lucide icons in soft-blue tiles)
-  - Solid blue rounded-pill "Get Started" CTA
-  - "Powered by eligere" footer
-  - Full Bahasa translations
-- **PWA** — manifest, service worker (registered on load), theme color, apple touch metadata
-- **Routing** — single route `/` for now; ready for next screens
+## Implemented screens
+### Welcome (`/`) — Feb 2026
+- Top language pill (EN/ID dropdown)
+- SUZUKI / SellWise brand block
+- Showroom illustration (SVG placeholder)
+- "Convert More Leads. Sell Smarter." headline + description
+- 3 feature cards: Leads, Smart Calling, Performance
+- "Get Started" CTA → navigates to `/leads`
+- "Powered by eligere" footer
+
+### My Leads (`/leads`) — Feb 2026
+- Shared `AppHeader` with brand + globe/search/profile icon buttons
+- Page title "My Leads" (SuzukiPro)
+- Pill tab toggle: "Human Follow-up (4)" / "AI Follow-up (4)" with URL query sync (`?tab=ai`)
+- **Human Follow-up tab**: 4 lead cards (Marcus Thompson, Jennifer Ramirez, David Chen, Samantha Williams)
+- **AI Follow-up tab**: "Schedule AI Follow-ups" expandable accordion + 4 AI lead cards (William Lucas, Carlos Gomez, Muhammad, Aisha Rahman) with "← Move to Human" footer
+- LeadCard: name (blue underlined), priority badge, "Interested in: [model]", tag pills (Test drive done / Finance interested / Need callback / Price enquiry / WhatsApp replied / First-time buyer / Need follow-up), last contact, blue Phone + green WhatsApp action circles, green-bordered "Recomended" pill under recommended action
+- Sticky `BottomNav` (Suzuki Blue): Leads / Perform / Guide / Analyze
 
 ## Test status
-- Iteration 1 (testing_agent_v3): **100% frontend pass**, zero console errors, manifest + SW served, language switch + persistence work, all data-testids present.
+- Iter 1 (Welcome): 100% frontend pass
+- Iter 2 (Leads): 14/15 (1 HIGH: ID overflow on tabs)
+- Iter 3 (Leads fix verification): 100% pass — ID + EN no-overflow, all regressions clean
 
-## Backlog (deferred / awaiting input)
-- **P0 — next screens**: user will supply additional screens; implement each pixel-perfect and wire `Get Started` and other CTAs to them.
-- **P0 — final assets**: replace SVG placeholders with the official Suzuki S logo, official showroom illustration, and official eligere logo (user will provide files).
-- **P1 — PWA polish**: add real `icon-192.png` / `icon-512.png` (currently referenced but file not yet shipped), splash screens, expanded precache list once route map is known.
-- **P1 — i18n expansion**: add language detection from browser/OS on first visit; add more languages if needed.
-- **P2 — analytics / event tracking**: hook `Get Started` click and language change to PostHog.
+## Backlog (deferred / awaiting user)
+- **P0**: Screens 3+ from user; routes for `/perform`, `/guide`, `/analyze`; lead detail page
+- **P0**: Real assets (Suzuki S logo, showroom illustration, eligere logo, PWA icons icon-192.png / icon-512.png)
+- **P1**: Schedule-AI-Followups content (currently placeholder)
+- **P1**: Wire bottom-nav non-Leads tabs once their routes exist (BottomNav.jsx onClick currently no-ops for those)
+- **P1**: Working call / WhatsApp / Move-to-Human handlers (currently visual)
+- **P2**: PWA install prompt, offline lead cache, analytics
 
 ## Next tasks
-1. Wait for user-supplied screen 2 mockup; build it as a new route and link from `Get Started`.
-2. Swap placeholder SVGs for official assets when user uploads them.
-3. Generate / supply real PWA icons (icon-192.png, icon-512.png).
+1. Receive next screen mockup from user; build it as a new route
+2. Replace SVG placeholders + ship real PWA icons when user delivers them
