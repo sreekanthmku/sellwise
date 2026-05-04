@@ -28,8 +28,7 @@ export default function Welcome() {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    // Will route to next screen once provided
-    navigate("/");
+    navigate("/leads");
   };
 
   return (

@@ -74,16 +74,57 @@ code {
 
 /* Suzuki SellWise palette */
 :root {
-    --suzuki-red: #e60012;
-    --suzuki-blue: #1f3a93;
-    --suzuki-blue-strong: #2540c8;
-    --action-blue: #2563eb;
-    --action-blue-hover: #1d4fd8;
-    --soft-blue-bg: #eef2ff;
-    --soft-blue-bg-2: #e0e7ff;
-    --text-strong: #0f172a;
-    --text-muted: #6b7280;
+    /* Primary */
+    --suzuki-red: #de0039;
+    --suzuki-blue: #023590;
+
+    /* Legacy alias kept for existing components */
+    --suzuki-blue-strong: #023590;
+    --action-blue: #2563ea;
+    --action-blue-hover: #1e40ae;
+    --soft-blue-bg: #ebf1ff;
+    --soft-blue-bg-2: #e9effd;
+    --text-strong: #161616;
+    --text-muted: #5a5a5a;
     --card-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+
+    /* Action */
+    --blue-600: #2563ea;
+    --blue-700: #1e40ae;
+
+    /* Priority */
+    --priority-high: #fe6464;
+    --priority-medium: #fe9f4d;
+    --priority-low: #b0b0b0;
+
+    /* Base */
+    --error: #f71818;
+    --warning: #f5641d;
+    --success: #39c062;
+    --disabled: #cccccc;
+    --gray-100: #cecece;
+    --gray-200: #5a5a5a;
+    --gray-300: #161616;
+    --white: #ffffff;
+
+    /* Secondary */
+    --blue-100: #f9fafc;
+    --blue-200: #e9effd;
+    --blue-300: #ebf1ff;
+    --blue-400: #c7dbff;
+    --blue-500: #659df2;
+    --red-100: #f8f0ee;
+    --red-200: #fee2e1;
+    --red-600: #bb312e;
+    --purple-100: #f2f0fd;
+    --purple-200: #f4e8ff;
+    --purple-600: #9233e9;
+    --yellow-100: #fef6e9;
+    --yellow-200: #fae1b8;
+    --yellow-600: #ff9e00;
+    --green-100: #edf8f2;
+    --green-200: #defbe9;
+    --green-600: #2fac6a;
 }
 
 @layer base {
