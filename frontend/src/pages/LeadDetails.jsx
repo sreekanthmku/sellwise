@@ -17,8 +17,10 @@ import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { ActionCircle, RecommendedPill } from "@/components/LeadCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
-import { humanLeads, aiLeads } from "@/data/mockLeads";
+import { useLeadsData } from "@/context/LeadsDataContext";
 import { initialsFromName, mergeLeadDetail } from "@/data/leadDetails";
+import { maskPhoneLastFour } from "@/lib/maskPhone";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 
 const formatAdded = (added, t) => {
   const { value, unit } = added;
@@ -50,8 +52,9 @@ export default function LeadDetails() {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { getLeadById } = useLeadsData();
 
-  const lead = [...humanLeads, ...aiLeads].find((l) => l.id === leadId);
+  const lead = getLeadById(leadId);
   if (!lead) return <Navigate to="/leads" replace />;
 
   const detail = mergeLeadDetail(lead);
@@ -81,7 +84,7 @@ export default function LeadDetails() {
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-none pb-8">
       {/* Profile + Brief Persona (single card) */}
       <DetailCard className="mt-1 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex min-h-0 gap-0">
@@ -110,7 +113,7 @@ export default function LeadDetails() {
                   className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--blue-600)]"
                   strokeWidth={2.25}
                 />
-                <span className="font-medium">{detail.phoneDisplay}</span>
+                <span className="font-medium">{maskPhoneLastFour(detail.phoneDisplay)}</span>
               </li>
               <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
                 <MapPin
@@ -151,9 +154,7 @@ export default function LeadDetails() {
           </div>
 
           <div className="flex w-[92px] shrink-0 flex-col items-center justify-center border-l border-[#e4e4e4] pl-3">
-            <div
-              className={`relative flex flex-col items-center ${lead.recommendedAction === "call" ? "mb-1" : ""}`}
-            >
+            <div className="relative flex flex-col items-center">
               <ActionCircle
                 color="bg-[color:var(--blue-600)]"
                 testid="lead-detail-call"
@@ -162,18 +163,28 @@ export default function LeadDetails() {
                 <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
               </ActionCircle>
               {lead.recommendedAction === "call" ? (
-                <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap">
+                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
                   <RecommendedPill />
                 </div>
               ) : null}
             </div>
-            <div className={lead.recommendedAction === "call" ? "mt-5" : "mt-0"}>
-              <div className="flex flex-col items-center gap-1">
-                <ActionCircle color="bg-[color:var(--success)]" testid="lead-detail-whatsapp">
-                  <WhatsAppIcon size={22} />
-                </ActionCircle>
-                {lead.recommendedAction === "whatsapp" ? <RecommendedPill /> : null}
-              </div>
+            <div
+              className={
+                lead.recommendedAction === "call" ? "relative mt-7" : "relative mt-5"
+              }
+            >
+              <ActionCircle
+                color="bg-[color:var(--success)]"
+                testid="lead-detail-whatsapp"
+                onClick={() => openWhatsAppChat(detail.phoneDisplay)}
+              >
+                <WhatsAppIcon size={22} />
+              </ActionCircle>
+              {lead.recommendedAction === "whatsapp" ? (
+                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
+                  <RecommendedPill />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

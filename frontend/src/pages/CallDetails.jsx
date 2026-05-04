@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { humanLeads, aiLeads } from "@/data/mockLeads";
+import { useLeadsData } from "@/context/LeadsDataContext";
 
 const DetailCard = ({ children, className = "" }) => (
   <section
@@ -65,11 +65,9 @@ export default function CallDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { getLeadById } = useLeadsData();
 
-  const lead = useMemo(
-    () => [...humanLeads, ...aiLeads].find((l) => l.id === leadId),
-    [leadId],
-  );
+  const lead = getLeadById(leadId);
 
   const durationSeconds =
     typeof location.state?.durationSeconds === "number"
@@ -115,7 +113,7 @@ export default function CallDetails() {
     >
       <div className="flex min-h-0 flex-1 flex-col">
         <div
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-none"
           style={{
             paddingBottom: "var(--sellwise-call-details-scroll-pad-bottom)",
           }}

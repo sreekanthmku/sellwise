@@ -13,7 +13,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
-import { humanLeads, aiLeads } from "@/data/mockLeads";
+import { useLeadsData } from "@/context/LeadsDataContext";
 import { initialsFromName, mergeLeadDetail } from "@/data/leadDetails";
 
 const formatLastContact = (lastContact, t) => {
@@ -46,11 +46,12 @@ export default function ActiveCall() {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { getLeadById } = useLeadsData();
   const [seconds, setSeconds] = useState(0);
   const [muted, setMuted] = useState(false);
   const [speaker, setSpeaker] = useState(false);
 
-  const lead = [...humanLeads, ...aiLeads].find((l) => l.id === leadId);
+  const lead = getLeadById(leadId);
 
   useEffect(() => {
     if (!lead) return undefined;

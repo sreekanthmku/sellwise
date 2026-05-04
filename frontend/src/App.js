@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { LeadsDataProvider } from "@/context/LeadsDataContext";
 import Welcome from "@/pages/Welcome";
 import Leads from "@/pages/Leads";
 import LeadDetails from "@/pages/LeadDetails";
@@ -12,10 +14,28 @@ import Performance from "@/pages/Performance";
 import Guide from "@/pages/Guide";
 
 function App() {
+  useEffect(() => {
+    const el = document.getElementById("pwa-splash-screen");
+    if (!el) return;
+    let done = false;
+    const remove = () => {
+      if (done) return;
+      done = true;
+      el.remove();
+    };
+    requestAnimationFrame(() => {
+      el.classList.add("pwa-splash-screen--hide");
+    });
+    el.addEventListener("transitionend", remove, { once: true });
+    const fallback = window.setTimeout(remove, 450);
+    return () => window.clearTimeout(fallback);
+  }, []);
+
   return (
     <LanguageProvider>
       <div className="App">
         <BrowserRouter>
+          <LeadsDataProvider>
           <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/leads/:leadId/call-feedback" element={<CallFeedback />} />
@@ -26,6 +46,7 @@ function App() {
             <Route path="/perform" element={<Performance />} />
             <Route path="/guide" element={<Guide />} />
           </Routes>
+          </LeadsDataProvider>
         </BrowserRouter>
         <Toaster
           position="bottom-center"

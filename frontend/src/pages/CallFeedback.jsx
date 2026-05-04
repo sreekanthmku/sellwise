@@ -3,7 +3,7 @@ import { ArrowLeft, ChevronRight, Clock } from "lucide-react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
-import { humanLeads, aiLeads } from "@/data/mockLeads";
+import { useLeadsData } from "@/context/LeadsDataContext";
 
 const DetailCard = ({ children, className = "" }) => (
   <section
@@ -35,11 +35,9 @@ export default function CallFeedback() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { getLeadById } = useLeadsData();
 
-  const lead = useMemo(
-    () => [...humanLeads, ...aiLeads].find((l) => l.id === leadId),
-    [leadId],
-  );
+  const lead = getLeadById(leadId);
 
   const durationSeconds =
     typeof location.state?.durationSeconds === "number"
@@ -85,7 +83,7 @@ export default function CallFeedback() {
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-none pb-10">
       {/* Call info */}
       <DetailCard className="mt-1">
         <h2 className="font-body text-[13px] font-bold text-[#111827]">{f.pageHeading}</h2>

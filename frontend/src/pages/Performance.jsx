@@ -47,7 +47,7 @@ export default function Performance() {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto pt-4 pb-5"
+        className="flex-1 overflow-y-auto overscroll-none pt-4 pb-10"
         data-testid="performance-content"
       >
         <section

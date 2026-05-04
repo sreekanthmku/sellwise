@@ -51,8 +51,58 @@
     font-display: swap;
 }
 
+/* PWA bootstrap splash (index.html); hidden from App.js after first paint */
+.pwa-splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    box-sizing: border-box;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+        env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    background-color: #f9fafc;
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+}
+
+.pwa-splash-screen--hide {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.pwa-splash-screen__logo {
+    display: block;
+    width: 88px;
+    height: 88px;
+}
+
+.pwa-splash-screen__title {
+    margin: 0;
+    font-family:
+        "SuzukiPro",
+        "Maison Neue",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #023590;
+}
+
 html {
     background-color: #f9fafc;
+    /* PWA / iOS: stop rubber-band “pull” past scroll bounds (and scroll chaining to the viewport). */
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
 }
 
 html,
@@ -64,10 +114,14 @@ body,
 #root {
     display: flex;
     flex-direction: column;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
 }
 
 body {
     margin: 0;
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
     font-family: "Maison Neue", -apple-system, BlinkMacSystemFont, "Segoe UI",
         Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -117,12 +171,15 @@ code {
 
     /* Layout: fixed action bars above BottomNav (see CallDetails) */
     --sellwise-app-max-width: 440px;
-    /* ~BottomNav pt-3 + pb-4 + icon row + label */
-    --sellwise-bottom-nav-height: 5.25rem;
+    /* Must match BottomNav: pt-3 + icon row + pb-[max(1rem, safe-area)]. Do not add env(safe-area) twice. */
+    --sellwise-bottom-nav-height: calc(
+        3.5rem + max(1rem, env(safe-area-inset-bottom, 0px))
+    );
     /* Call details actions: border + pt-3 + pb-3 + 44px buttons */
     --sellwise-call-details-actions-height: 4.5rem;
+    /* Scroll pad: fixed action bar + extra gap so last content isn’t tight under buttons */
     --sellwise-call-details-scroll-pad-bottom: calc(
-        var(--sellwise-call-details-actions-height) + var(--sellwise-bottom-nav-height)
+        var(--sellwise-call-details-actions-height) + 0.75rem
     );
 
     /* Action */

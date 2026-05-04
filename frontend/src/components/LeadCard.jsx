@@ -4,6 +4,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { StatusTag } from "@/components/StatusTag";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { mergeLeadDetail } from "@/data/leadDetails";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 
 const formatLastContact = (lastContact, t) => {
   const { value, unit } = lastContact;
@@ -35,7 +37,7 @@ export const RecommendedPill = () => {
   );
 };
 
-export const LeadCard = ({ lead, variant = "human" }) => {
+export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -63,13 +65,10 @@ export const LeadCard = ({ lead, variant = "human" }) => {
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 
-        {/* Tags: aim for ~3 per row; wrap to a second row when needed; text never clipped */}
-        <div className="mt-3 flex flex-wrap gap-2">
+        {/* Tags: fixed 3 columns per row; 1–2 tags stay narrow (no flex-grow into empty space) */}
+        <div className="mt-3 grid grid-cols-3 gap-2">
           {lead.tags.map((tagKey) => (
-            <div
-              key={tagKey}
-              className="box-border min-w-0 max-w-full flex-[1_1_calc(33.333%-0.36rem)]"
-            >
+            <div key={tagKey} className="min-w-0">
               <StatusTag tagKey={tagKey} />
             </div>
           ))}
@@ -84,7 +83,7 @@ export const LeadCard = ({ lead, variant = "human" }) => {
             </span>
           </p>
           <div className="flex items-start gap-3">
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <ActionCircle
                 color="bg-[color:var(--blue-600)]"
                 testid={`call-btn-${lead.id}`}
@@ -92,16 +91,25 @@ export const LeadCard = ({ lead, variant = "human" }) => {
               >
                 <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
               </ActionCircle>
-              {lead.recommendedAction === "call" ? <RecommendedPill /> : <span className="h-[18px]" aria-hidden />}
+              {lead.recommendedAction === "call" ? (
+                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
+                  <RecommendedPill />
+                </div>
+              ) : null}
             </div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <ActionCircle
                 color="bg-[color:var(--success)]"
                 testid={`whatsapp-btn-${lead.id}`}
+                onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}
               >
                 <WhatsAppIcon size={22} />
               </ActionCircle>
-              {lead.recommendedAction === "whatsapp" ? <RecommendedPill /> : <span className="h-[18px]" aria-hidden />}
+              {lead.recommendedAction === "whatsapp" ? (
+                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
+                  <RecommendedPill />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -111,6 +119,7 @@ export const LeadCard = ({ lead, variant = "human" }) => {
         <button
           type="button"
           data-testid={`move-to-human-${lead.id}`}
+          onClick={() => onMoveToHuman?.(lead.id)}
           className="flex w-full items-center justify-center gap-2 bg-[color:var(--blue-200)] py-3 text-[14px] font-semibold text-[color:var(--blue-600)] transition-colors hover:bg-[color:var(--blue-300)]"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />

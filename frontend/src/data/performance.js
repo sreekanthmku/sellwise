@@ -9,7 +9,7 @@ export const performanceToday = {
 export const performanceRecentCalls = [
   {
     id: "pc-1",
-    name: "Marcus Thompson",
+    name: "Bambang Wijaya",
     callType: "human",
     outcome: "interested",
     timeKey: "t915",
@@ -17,7 +17,7 @@ export const performanceRecentCalls = [
   },
   {
     id: "pc-2",
-    name: "Sarah Mitchell",
+    name: "Dian Permatasari",
     callType: "human",
     outcome: "followUp",
     timeKey: "t915",
@@ -25,7 +25,7 @@ export const performanceRecentCalls = [
   },
   {
     id: "pc-3",
-    name: "David Park",
+    name: "Eko Wijaya",
     callType: "ai",
     outcome: "interested",
     timeKey: "yesterday",
@@ -33,7 +33,7 @@ export const performanceRecentCalls = [
   },
   {
     id: "pc-4",
-    name: "Jennifer Adams",
+    name: "Lina Susanti",
     callType: "human",
     outcome: "notInterested",
     timeKey: "yesterday",

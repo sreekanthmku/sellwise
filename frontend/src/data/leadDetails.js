@@ -1,73 +1,9 @@
 /**
- * Rich lead detail content. Merged per id with defaults from the list row (`mockLeads`).
+ * Lead detail screen merge helper. Rich content lives on each row in `mockLeads` (`detail`).
  */
 
-/** SUV hero — Unsplash photo-1533… returns 404; use a stable id that resolves. */
 const MODEL_IMG =
   "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=400&q=80";
-
-export const LEAD_DETAIL_OVERRIDES = {
-  h1: {
-    phoneDisplay: "XXX XXX-3291",
-    location: "Austin, TX",
-    leadSourceKey: "website",
-    added: { value: 2, unit: "days" },
-    briefPersonaKey: "marcus",
-    preferences: [
-      { key: "type", valueKey: "suv" },
-      { key: "budget", valueKey: "budgetRange" },
-      { key: "usage", valueKey: "commute" },
-      { key: "features", valueKey: "automatic" },
-      { key: "fuelType", valueKey: "electric" },
-      { key: "color", valueKey: "redBlack" },
-    ],
-    nextSteps: [
-      { titleKey: "testRide", subtitleKey: "testRideSub" },
-      { titleKey: "brochure", subtitleKey: "brochureSub" },
-      { titleKey: "followUpCall", subtitleKey: "followUpCallSub" },
-    ],
-    callHistory: [
-      {
-        titleKey: "initialContact",
-        ago: { value: 2, unit: "days" },
-        status: "new",
-        durationMin: 8,
-        durationSec: 32,
-        notesKey: "initialNotes",
-      },
-      {
-        titleKey: "followUpDiscussion",
-        ago: { value: 5, unit: "days" },
-        status: "interested",
-        durationMin: 5,
-        durationSec: 18,
-        notesKey: "followUpNotes",
-      },
-    ],
-    recommendedModels: [
-      {
-        name: "E Vitara",
-        rangeKey: "evitarRange",
-        priceKey: "lakh1520",
-        image: MODEL_IMG,
-      },
-      {
-        name: "Fronx",
-        rangeKey: "fronxRange",
-        priceKey: "lakh812",
-        image:
-          "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=400&q=80",
-      },
-      {
-        name: "XL7 Hybrid",
-        rangeKey: "xl7Range",
-        priceKey: "lakh1822",
-        image:
-          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80",
-      },
-    ],
-  },
-};
 
 export function initialsFromName(name) {
   return name
@@ -123,8 +59,7 @@ function defaultModels(lead) {
 }
 
 export function mergeLeadDetail(lead) {
-  const override = LEAD_DETAIL_OVERRIDES[lead.id] || {};
-  return {
+  const fallback = {
     phoneDisplay: "—",
     location: "—",
     leadSourceKey: "website",
@@ -134,6 +69,6 @@ export function mergeLeadDetail(lead) {
     nextSteps: defaultNextSteps(),
     callHistory: defaultCallHistory(),
     recommendedModels: defaultModels(lead),
-    ...override,
   };
+  return { ...fallback, ...(lead.detail || {}) };
 }

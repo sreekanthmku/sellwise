@@ -4,10 +4,12 @@ import { AppScreen } from "@/components/AppScreen";
 import { LeadCard } from "@/components/LeadCard";
 import { TabButton } from "@/components/leads/TabButton";
 import { ScheduleAiAccordion } from "@/components/leads/ScheduleAiAccordion";
+import { useLeadsData } from "@/context/LeadsDataContext";
 import { useLeadsTab } from "@/hooks/useLeadsTab";
 
 export default function Leads() {
   const { t } = useLanguage();
+  const { moveAiLeadToHuman } = useLeadsData();
   const { tab, switchTab, leads, humanLeadCount, aiLeadCount } = useLeadsTab();
 
   return (
@@ -26,7 +28,7 @@ export default function Leads() {
         </h1>
       </div>
 
-      <div className="mt-4 flex gap-2" data-testid="leads-tabs">
+      <div className="mt-4 flex gap-2 pb-2" data-testid="leads-tabs">
         <TabButton
           active={tab === "human"}
           onClick={() => switchTab("human")}
@@ -46,7 +48,7 @@ export default function Leads() {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto pt-4 pb-5"
+        className="flex-1 overflow-y-auto overscroll-none pt-4 pb-10"
         data-testid="leads-content"
       >
         {tab === "ai" && <ScheduleAiAccordion queuedLeadCount={aiLeadCount} />}
@@ -57,6 +59,7 @@ export default function Leads() {
               key={lead.id}
               lead={lead}
               variant={tab === "ai" ? "ai" : "human"}
+              onMoveToHuman={tab === "ai" ? moveAiLeadToHuman : undefined}
             />
           ))}
         </div>

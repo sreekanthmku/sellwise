@@ -266,10 +266,10 @@ export default function Guide() {
         <>
       <div
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto py-4"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-none pb-8 pt-4"
         data-testid="guide-chat-scroll"
       >
-        <div className="flex flex-col gap-3.5 pb-2">
+        <div className="flex flex-col gap-3.5 pb-4">
           {messages.map((m) => {
             if (m.role === "user") {
               return <UserBubble key={m.id} text={m.text} />;
@@ -315,7 +315,7 @@ export default function Guide() {
       </div>
 
       <div
-        className="-mx-[16px] shrink-0 border-t border-[#e5e7eb] bg-[#F7F8FB] px-[16px] pt-2 pb-4"
+        className="-mx-[16px] shrink-0 border-t border-[#e5e7eb] bg-[#F7F8FB] px-[16px] pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]"
         data-testid="guide-composer"
       >
         {/* Suggested questions: hidden for now; keep markup + `suggestions` for easy restore */}

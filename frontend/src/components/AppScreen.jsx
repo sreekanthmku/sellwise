@@ -26,7 +26,7 @@ export function AppScreen({
     <div
       data-testid={screenTestId}
       className={cn(
-        "relative mx-auto flex w-full max-w-[440px] flex-col bg-[var(--app-canvas)]",
+        "relative mx-auto flex w-full max-w-[440px] flex-col overscroll-none bg-[var(--app-canvas)]",
         viewportLocked
           ? "h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden"
           : "min-h-screen",
@@ -36,7 +36,7 @@ export function AppScreen({
       <main
         data-testid={mainTestId}
         className={cn(
-          "flex min-h-0 flex-1 flex-col px-[16px]",
+          "flex min-h-0 flex-1 flex-col overscroll-none px-[16px]",
           mainBgClass,
           mainClassName,
         )}

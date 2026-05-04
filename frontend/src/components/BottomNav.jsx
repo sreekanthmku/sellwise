@@ -17,7 +17,7 @@ export const BottomNav = () => {
   return (
     <nav
       data-testid="bottom-nav"
-      className="sticky bottom-0 left-0 right-0 z-40 mt-auto bg-[color:var(--suzuki-blue)] px-4 pt-3 pb-4"
+      className="sticky bottom-0 left-0 right-0 z-40 mt-auto bg-[color:var(--suzuki-blue)] px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
     >
       <ul className="grid grid-cols-4">
         {navItems.map(({ key, path, icon: Icon, testid }) => {
