@@ -1,0 +1,21 @@
+{
+  "name": "sellwise-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sellwise voice webhooks, recording/transcription callbacks, and call-analysis API",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "vobiz-webrtc-sdk": "^1.0.3"
+  }
+}

@@ -1,6 +1,8 @@
 import { Users, Phone, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
+import { useVobiz } from "@/vobiz/VobizProvider";
 import { AppScreen } from "@/components/AppScreen";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EligereLogo } from "@/components/EligereLogo";
@@ -25,6 +27,7 @@ const FeatureCard = ({ icon: Icon, title, subtitle, testid }) => (
 export default function Welcome() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { connecting } = useVobiz();
 
   const handleGetStarted = () => {
     navigate("/leads");
@@ -123,8 +126,9 @@ export default function Welcome() {
       <button
         type="button"
         onClick={handleGetStarted}
+        disabled={connecting}
         data-testid="get-started-btn"
-        className="font-suzuki mt-6 w-full rounded-[12px] bg-[#2563EA] px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] text-white transition-[background-color,transform] duration-[160ms] ease-out hover:bg-[#1e40ae] active:translate-y-px focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
+        className="font-suzuki mt-6 w-full rounded-[12px] bg-[#2563EA] px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] text-white transition-[background-color,transform] duration-[160ms] ease-out hover:bg-[#1e40ae] active:translate-y-px focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:pointer-events-none disabled:opacity-60"
       >
         {t.getStarted}
       </button>

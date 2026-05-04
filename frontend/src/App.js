@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { LeadsDataProvider } from "@/context/LeadsDataContext";
 import Welcome from "@/pages/Welcome";
+import { CallShell } from "@/components/CallShell";
+import { VobizProvider } from "@/vobiz/VobizProvider";
 import Leads from "@/pages/Leads";
 import LeadDetails from "@/pages/LeadDetails";
 import CallDetails from "@/pages/CallDetails";
@@ -35,18 +37,21 @@ function App() {
     <LanguageProvider>
       <div className="App">
         <BrowserRouter>
-          <LeadsDataProvider>
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/leads/:leadId/call-feedback" element={<CallFeedback />} />
-            <Route path="/leads/:leadId/call-details" element={<CallDetails />} />
-            <Route path="/leads/:leadId/call" element={<ActiveCall />} />
-            <Route path="/leads/:leadId" element={<LeadDetails />} />
-            <Route path="/leads" element={<Leads />} />
-            <Route path="/perform" element={<Performance />} />
-            <Route path="/guide" element={<Guide />} />
-          </Routes>
-          </LeadsDataProvider>
+          <VobizProvider>
+            <CallShell />
+            <LeadsDataProvider>
+              <Routes>
+                <Route path="/" element={<Welcome />} />
+                <Route path="/leads/:leadId/call-feedback" element={<CallFeedback />} />
+                <Route path="/leads/:leadId/call-details" element={<CallDetails />} />
+                <Route path="/leads/:leadId/call" element={<ActiveCall />} />
+                <Route path="/leads/:leadId" element={<LeadDetails />} />
+                <Route path="/leads" element={<Leads />} />
+                <Route path="/perform" element={<Performance />} />
+                <Route path="/guide" element={<Guide />} />
+              </Routes>
+            </LeadsDataProvider>
+          </VobizProvider>
         </BrowserRouter>
         <Toaster
           position="bottom-center"

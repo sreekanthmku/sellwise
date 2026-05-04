@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DollarSign,
   Info,
@@ -11,10 +11,12 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { initialsFromName, mergeLeadDetail } from "@/data/leadDetails";
+import { sanitizeDialString, useVobiz } from "@/vobiz/VobizProvider";
 
 const formatLastContact = (lastContact, t) => {
   const { value, unit } = lastContact;
@@ -22,12 +24,6 @@ const formatLastContact = (lastContact, t) => {
   if (unit === "day") return `${value}${t.timeAgo.day}`;
   return `${value} ${t.timeAgo.days}`;
 };
-
-function formatCallDuration(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
 
 function budgetFromDetail(detail, lead, t) {
   const row = detail.preferences.find((p) => p.key === "budget");
@@ -42,22 +38,200 @@ function leadHeatLabel(priority, t) {
   return t.priority[priority] ?? priority;
 }
 
+/** Header status chip: replaces timer during setup / ringing / connected pulse; then shows mm:ss. */
+function useCallStatusChip({
+  t,
+  preNavigateKind,
+  connecting,
+  registered,
+  connectionText,
+  outboundPending,
+  isInCall,
+  connectedLabelUntil,
+  isCallDurationRunning,
+  timerLabel,
+}) {
+  return useMemo(() => {
+    if (preNavigateKind === "busy") {
+      return {
+        text: t.activeCall.statusUserBusy,
+        dotClass: "bg-amber-400",
+        mono: false,
+      };
+    }
+    if (preNavigateKind === "ended") {
+      return {
+        text: t.activeCall.callEnded,
+        dotClass: "bg-white/80",
+        mono: false,
+      };
+    }
+    if (connecting && !registered) {
+      return {
+        text: t.activeCall.statusRegistering,
+        dotClass: "bg-amber-400 animate-pulse",
+        mono: false,
+      };
+    }
+    if (connectedLabelUntil != null) {
+      return {
+        text: t.activeCall.statusConnected,
+        dotClass: "bg-emerald-400",
+        mono: false,
+      };
+    }
+    if (outboundPending && !isInCall && connectionText === "Ringing") {
+      return {
+        text: t.activeCall.statusRinging,
+        dotClass: "bg-amber-400 animate-pulse",
+        mono: false,
+      };
+    }
+    if (outboundPending && !isInCall) {
+      return {
+        text: t.activeCall.statusOutbound,
+        dotClass: "bg-amber-400 animate-pulse",
+        mono: false,
+      };
+    }
+    if (isCallDurationRunning) {
+      return {
+        text: timerLabel,
+        dotClass: "bg-[#22c55e]",
+        mono: true,
+      };
+    }
+    if (isInCall) {
+      return {
+        text: t.activeCall.statusConnected,
+        dotClass: "bg-emerald-400",
+        mono: false,
+      };
+    }
+    return {
+      text: "—",
+      dotClass: "bg-white/40",
+      mono: false,
+    };
+  }, [
+    t,
+    preNavigateKind,
+    connecting,
+    registered,
+    connectionText,
+    outboundPending,
+    isInCall,
+    connectedLabelUntil,
+    isCallDurationRunning,
+    timerLabel,
+  ]);
+}
+
 export default function ActiveCall() {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { getLeadById } = useLeadsData();
-  const [seconds, setSeconds] = useState(0);
-  const [muted, setMuted] = useState(false);
+  const {
+    placeOutboundCall,
+    hangup,
+    toggleMute,
+    isMuted,
+    timerLabel,
+    registered,
+    connecting,
+    loginFromEnvIfConfigured,
+    connectionText,
+    outboundPending,
+    isInCall,
+    connectedLabelUntil,
+    isCallDurationRunning,
+    lastCallSession,
+    clearLastCallSession,
+  } = useVobiz();
   const [speaker, setSpeaker] = useState(false);
+  const [preNavigateKind, setPreNavigateKind] = useState(null);
+  const dialStartedRef = useRef(false);
+  /** Matches `activeMeta.dialSeq` / `placeOutboundCall` for this visit — avoids navigating on SDK end for a previous dial (sellwise routes away; vobizFE stays on one screen). */
+  const activeOutboundDialSeqRef = useRef(null);
 
   const lead = getLeadById(leadId);
 
   useEffect(() => {
-    if (!lead) return undefined;
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [lead]);
+    if (!lead || !leadId) return;
+    const r = loginFromEnvIfConfigured(`/leads/${leadId}/call`);
+    if (r?.ok === false && r?.error === "no-env") {
+      toast.error("Add REACT_APP_VOBIZ_USERNAME and REACT_APP_VOBIZ_PASSWORD to .env for calling.");
+      navigate("/leads", { replace: true });
+    }
+  }, [lead, leadId, loginFromEnvIfConfigured, navigate]);
+
+  useEffect(() => {
+    if (!lead || !leadId || !registered) return;
+    if (dialStartedRef.current) return;
+    dialStartedRef.current = true;
+    const detailRow = mergeLeadDetail(lead);
+    const phoneDisplay = detailRow.phoneDisplay;
+    const result = placeOutboundCall({
+      destination: sanitizeDialString(phoneDisplay),
+      name: lead.name,
+      subtitle: phoneDisplay || "",
+      avatar: null,
+      leadId,
+    });
+    if (result.dialSeq != null) {
+      activeOutboundDialSeqRef.current = result.dialSeq;
+    }
+    if (!result.ok && result.error !== "Busy") {
+      dialStartedRef.current = false;
+    }
+  }, [lead, leadId, registered, placeOutboundCall]);
+
+  useEffect(() => {
+    if (!lastCallSession || lastCallSession.leadId !== leadId) {
+      setPreNavigateKind(null);
+      return;
+    }
+    if (
+      lastCallSession.endedDialSeq == null ||
+      lastCallSession.endedDialSeq !== activeOutboundDialSeqRef.current
+    ) {
+      return;
+    }
+    const kind = lastCallSession.endReason === "busy" ? "busy" : "ended";
+    setPreNavigateKind(kind);
+    let cancelled = false;
+    const navTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      navigate(`/leads/${leadId}/call-details`, {
+        replace: true,
+        state: {
+          durationSeconds: lastCallSession.durationSeconds,
+          endedAt: lastCallSession.endedAtIso,
+          callUuid: lastCallSession.callUuid,
+        },
+      });
+      clearLastCallSession();
+      setPreNavigateKind(null);
+    }, 1200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(navTimer);
+    };
+  }, [lastCallSession, leadId, navigate, clearLastCallSession]);
+
+  const statusChip = useCallStatusChip({
+    t,
+    preNavigateKind,
+    connecting,
+    registered,
+    connectionText,
+    outboundPending,
+    isInCall,
+    connectedLabelUntil,
+    isCallDurationRunning,
+    timerLabel,
+  });
 
   if (!lead) {
     navigate("/leads", { replace: true });
@@ -87,12 +261,17 @@ export default function ActiveCall() {
           </span>
         </div>
         <div
-          className="flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5"
+          className="flex max-w-[min(100%,220px)] items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5"
           data-testid="active-call-timer"
         >
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[#22c55e]" aria-hidden />
-          <span className="font-mono text-[15px] font-medium tabular-nums">
-            {formatCallDuration(seconds)}
+          <span
+            className={`h-2 w-2 shrink-0 rounded-full ${statusChip.dotClass}`}
+            aria-hidden
+          />
+          <span
+            className={`min-w-0 truncate text-[15px] font-medium ${statusChip.mono ? "font-mono tabular-nums" : "font-body"}`}
+          >
+            {statusChip.text}
           </span>
         </div>
       </header>
@@ -161,11 +340,11 @@ export default function ActiveCall() {
         <button
           type="button"
           data-testid="active-call-mute"
-          onClick={() => setMuted((m) => !m)}
-          aria-pressed={muted}
+          onClick={() => toggleMute()}
+          aria-pressed={isMuted}
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white text-[#2d3748] transition-transform active:scale-95"
         >
-          {muted ? (
+          {isMuted ? (
             <MicOff className="h-6 w-6" strokeWidth={2.25} />
           ) : (
             <Mic className="h-6 w-6" strokeWidth={2.25} />
@@ -174,14 +353,7 @@ export default function ActiveCall() {
         <button
           type="button"
           data-testid="active-call-end"
-          onClick={() =>
-            navigate(`/leads/${leadId}/call-details`, {
-              state: {
-                durationSeconds: seconds,
-                endedAt: new Date().toISOString(),
-              },
-            })
-          }
+          onClick={() => hangup()}
           className="flex h-[66px] w-[66px] shrink-0 items-center justify-center rounded-full bg-[#e11d48] text-white transition-transform active:scale-95"
           aria-label={t.activeCall.endCall}
         >

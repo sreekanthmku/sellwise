@@ -13,14 +13,14 @@ const IMG = {
 export const humanLeads = [
   {
     id: "h1",
-    name: "Bambang Wijaya",
+    name: "Sreekanth",
     interestedIn: "e Vitara",
     priority: "high",
     tags: ["testDriveDone", "financeInterested", "needCallback"],
     lastContact: { value: 2, unit: "hours" },
     recommendedAction: "call",
     detail: {
-      phoneDisplay: "+62 811-2044-5590",
+      phoneDisplay: "+917012804584",
       location: "Jakarta Selatan, DKI Jakarta",
       leadSourceKey: "website",
       added: { value: 2, unit: "days" },
@@ -80,14 +80,14 @@ export const humanLeads = [
   },
   {
     id: "h2",
-    name: "Budi Santoso",
+    name: "Sushil Rana",
     interestedIn: "Fronx",
     priority: "medium",
     tags: ["priceEnquiry", "whatsappReplied"],
     lastContact: { value: 1, unit: "day" },
     recommendedAction: "whatsapp",
     detail: {
-      phoneDisplay: "+62 812-3456-9012",
+      phoneDisplay: "+916397312457",
       location: "Bandung, Jawa Barat",
       leadSourceKey: "website",
       added: { value: 6, unit: "days" },

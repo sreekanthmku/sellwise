@@ -9,7 +9,7 @@ export const performanceToday = {
 export const performanceRecentCalls = [
   {
     id: "pc-1",
-    name: "Bambang Wijaya",
+    name: "Sreekanth",
     callType: "human",
     outcome: "interested",
     timeKey: "t915",
