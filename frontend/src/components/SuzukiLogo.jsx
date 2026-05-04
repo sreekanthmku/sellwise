@@ -32,8 +32,7 @@ export const SuzukiSMark = ({ className = "", size = 96 }) => (
 
 export const SuzukiWordmark = ({ className = "" }) => (
   <span
-    className={`font-extrabold tracking-[0.04em] text-[color:var(--suzuki-blue)] ${className}`}
-    style={{ fontFamily: "Manrope, sans-serif" }}
+    className={`font-suzuki font-extrabold tracking-[0.04em] text-[color:var(--suzuki-blue)] ${className}`}
   >
     SUZUKI
   </span>

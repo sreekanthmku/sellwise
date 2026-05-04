@@ -14,7 +14,7 @@ const FeatureCard = ({ icon: Icon, title, subtitle, testid }) => (
     <div className="sw-icon-tile mb-2 flex h-10 w-10 items-center justify-center">
       <Icon className="h-5 w-5" strokeWidth={2.25} />
     </div>
-    <p className="text-[15px] font-extrabold leading-tight text-[color:var(--text-strong)]">
+    <p className="font-suzuki text-[15px] font-extrabold leading-tight text-[color:var(--text-strong)]">
       {title}
     </p>
     <p className="mt-1 text-[12.5px] leading-snug text-[color:var(--text-muted)]">
@@ -47,8 +47,7 @@ export default function Welcome() {
         <SuzukiSMark size={86} />
         <SuzukiWordmark className="mt-1 text-[34px] leading-none" />
         <span
-          className="mt-1 text-[26px] font-extrabold leading-none text-[color:var(--suzuki-red)]"
-          style={{ fontFamily: "Manrope, sans-serif" }}
+          className="font-suzuki mt-1 text-[26px] font-extrabold leading-none text-[color:var(--suzuki-red)]"
         >
           {t.appName}
         </span>
@@ -65,8 +64,7 @@ export default function Welcome() {
       {/* Headline */}
       <div className="mt-5 text-center" data-testid="welcome-headline">
         <h1
-          className="text-[26px] font-extrabold leading-[1.15] text-[color:var(--suzuki-blue)] sm:text-[28px]"
-          style={{ fontFamily: "Manrope, sans-serif" }}
+          className="font-suzuki text-[26px] font-extrabold leading-[1.15] text-[color:var(--suzuki-blue)] sm:text-[28px]"
         >
           {t.headlineLine1}
           <br />
@@ -115,7 +113,7 @@ export default function Welcome() {
         type="button"
         onClick={handleGetStarted}
         data-testid="get-started-btn"
-        className="sw-cta mt-6 w-full rounded-full px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] shadow-[0_8px_18px_rgba(37,99,235,0.28)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
+        className="sw-cta font-suzuki mt-6 w-full rounded-full px-6 py-3.5 text-[16px] font-extrabold tracking-[0.01em] shadow-[0_8px_18px_rgba(37,99,235,0.28)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
       >
         {t.getStarted}
       </button>

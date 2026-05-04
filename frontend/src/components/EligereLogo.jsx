@@ -23,8 +23,7 @@ export const EligereLogo = ({ className = "" }) => (
       <circle cx="26" cy="6" r="3" fill="#9333EA" />
     </svg>
     <span
-      className="text-[15px] font-semibold tracking-tight text-[color:#3F2A8C]"
-      style={{ fontFamily: "Manrope, sans-serif" }}
+      className="font-suzuki text-[15px] font-semibold tracking-tight text-[color:#3F2A8C]"
     >
       eligere
     </span>

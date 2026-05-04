@@ -20,17 +20,17 @@ export const ShowroomIllustration = ({ className = "" }) => (
     <g>
       <rect x="100" y="40" width="40" height="34" fill="#1F3A93" />
       <polygon points="100,74 120,86 140,74" fill="#1F3A93" />
-      <text x="120" y="62" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="700" fontFamily="Manrope">SPEED</text>
+      <text x="120" y="62" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="700" fontFamily="SuzukiPro, Maison Neue, sans-serif">SPEED</text>
     </g>
     <g>
       <rect x="240" y="40" width="40" height="34" fill="#E60012" />
       <polygon points="240,74 260,86 280,74" fill="#E60012" />
-      <text x="260" y="62" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="700" fontFamily="Manrope">BIKE</text>
+      <text x="260" y="62" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="700" fontFamily="SuzukiPro, Maison Neue, sans-serif">BIKE</text>
     </g>
     <g>
       <rect x="380" y="40" width="40" height="34" fill="#1F3A93" />
       <polygon points="380,74 400,86 420,74" fill="#1F3A93" />
-      <text x="400" y="62" textAnchor="middle" fill="#fff" fontSize="10" fontWeight="700" fontFamily="Manrope">FUTURE</text>
+      <text x="400" y="62" textAnchor="middle" fill="#fff" fontSize="10" fontWeight="700" fontFamily="SuzukiPro, Maison Neue, sans-serif">FUTURE</text>
     </g>
 
     {/* Floor */}
