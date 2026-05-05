@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronRight, Clock } from "lucide-react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { useLeadsData } from "@/context/LeadsDataContext";
+import { defaultApiBase } from "@/vobiz/constants";
 
 const DetailCard = ({ children, className = "" }) => (
   <section
@@ -30,6 +32,22 @@ function formatEndedAtLabel(d, t) {
   return `${d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}, ${timeStr}`;
 }
 
+/** @param {unknown} n */
+function formatSkillOutOf10(n) {
+  if (typeof n !== "number" || !Number.isFinite(n)) return null;
+  const rounded = Math.round(n * 10) / 10;
+  const s = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return `${s}/10`;
+}
+
+/** @param {unknown} n */
+function formatOverallOutOf10(n) {
+  if (typeof n !== "number" || !Number.isFinite(n)) return null;
+  const rounded = Math.round(n * 10) / 10;
+  const s = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return `${s}/10`;
+}
+
 export default function CallFeedback() {
   const { leadId } = useParams();
   const navigate = useNavigate();
@@ -38,6 +56,17 @@ export default function CallFeedback() {
   const { getLeadById } = useLeadsData();
 
   const lead = getLeadById(leadId);
+
+  const passedAnalysisFromNav =
+    location.state?.analysisResult != null && typeof location.state.analysisResult === "object"
+      ? location.state.analysisResult
+      : null;
+
+  const [analysisLoading, setAnalysisLoading] = useState(
+    !passedAnalysisFromNav && Boolean(location.state?.callUuid),
+  );
+  const [analysisError, setAnalysisError] = useState("");
+  const [analysisResult, setAnalysisResult] = useState(passedAnalysisFromNav);
 
   const durationSeconds =
     typeof location.state?.durationSeconds === "number"
@@ -54,12 +83,136 @@ export default function CallFeedback() {
 
   const f = t.callFeedbackPage;
 
+  const sf = analysisResult?.suzuki_feedback;
+  const hasSuzukiFeedback = sf != null && typeof sf === "object";
+
+  useEffect(() => {
+    const passed = location.state?.analysisResult;
+    if (passed && typeof passed === "object") {
+      setAnalysisResult(passed);
+      setAnalysisLoading(false);
+      setAnalysisError("");
+      return;
+    }
+
+    const callUuid = location.state?.callUuid;
+    if (!callUuid || typeof callUuid !== "string") {
+      setAnalysisLoading(false);
+      setAnalysisError("");
+      setAnalysisResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    setAnalysisLoading(true);
+    setAnalysisError("");
+
+    const run = async () => {
+      try {
+        const url = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}`;
+        const res = await fetch(url);
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!res.ok || !data?.ok || !data?.analysis) {
+          const msg = data?.error || data?.hint || `Failed to create summary (HTTP ${res.status})`;
+          setAnalysisError(msg);
+          toast.error(msg);
+          return;
+        }
+        setAnalysisResult(data.analysis.result || null);
+      } catch (err) {
+        if (cancelled) return;
+        const msg = err?.message || "Failed to fetch call feedback summary";
+        setAnalysisError(msg);
+        toast.error(msg);
+      } finally {
+        if (!cancelled) setAnalysisLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.state?.callUuid, location.state?.analysisResult]);
+
   if (!lead) return <Navigate to="/leads" replace />;
 
   const backState = {
     durationSeconds,
     endedAt: endedAt.toISOString(),
+    callUuid: location.state?.callUuid ?? null,
+    analysisResult: analysisResult ?? undefined,
   };
+
+  const na = f.notAvailable ?? "NA";
+
+  const overallFormatted = hasSuzukiFeedback ? formatOverallOutOf10(sf.overall_score) : null;
+  const overallDisplay = overallFormatted != null ? overallFormatted : na;
+
+  const didWellItems =
+    hasSuzukiFeedback && Array.isArray(sf.what_you_did_well) && sf.what_you_did_well.length > 0
+      ? sf.what_you_did_well
+      : [na];
+
+  const improveItems =
+    hasSuzukiFeedback && Array.isArray(sf.improve_next) && sf.improve_next.length > 0
+      ? sf.improve_next
+      : [na];
+
+  const sayInsteadItems =
+    hasSuzukiFeedback && Array.isArray(sf.what_to_say_instead) && sf.what_to_say_instead.length > 0
+      ? sf.what_to_say_instead.map((row, i) => {
+          if (row && typeof row === "object" && ("situation" in row || "better_phrase" in row)) {
+            const situation = typeof row.situation === "string" ? row.situation.trim() : "";
+            const better = typeof row.better_phrase === "string" ? row.better_phrase.trim() : "";
+            if (situation && better) return { key: `wts-${i}`, text: `${situation} — ${better}` };
+            if (better) return { key: `wts-${i}`, text: better };
+            if (situation) return { key: `wts-${i}`, text: situation };
+          }
+          return { key: `wts-${i}`, text: String(row) };
+        })
+      : [{ key: "say-instead-na", text: na }];
+
+  const productScore =
+    hasSuzukiFeedback && sf.skill_breakdown
+      ? formatSkillOutOf10(sf.skill_breakdown.product_knowledge)
+      : null;
+  const negotiationScore =
+    hasSuzukiFeedback && sf.skill_breakdown
+      ? formatSkillOutOf10(sf.skill_breakdown.negotiation)
+      : null;
+  const closingScore =
+    hasSuzukiFeedback && sf.skill_breakdown
+      ? formatSkillOutOf10(sf.skill_breakdown.closing)
+      : null;
+
+  const coachingBody =
+    hasSuzukiFeedback && typeof sf.coaching_insight === "string" && sf.coaching_insight.trim()
+      ? sf.coaching_insight.trim()
+      : na;
+
+  const summaryParagraph =
+    typeof analysisResult?.summary === "string" && analysisResult.summary.trim()
+      ? analysisResult.summary.trim()
+      : analysisError || na;
+
+  if (analysisLoading) {
+    return (
+      <AppScreen
+        screenTestId="call-feedback-screen"
+        mainTestId="call-feedback-main"
+        mainBgClass="bg-[#F7F8FB]"
+        showBottomNav
+      >
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 py-16 px-4">
+          <p className="text-center font-body text-[15px] font-semibold text-[#374151]">
+            Loading feedback…
+          </p>
+        </div>
+      </AppScreen>
+    );
+  }
 
   return (
     <AppScreen
@@ -107,9 +260,11 @@ export default function CallFeedback() {
         <h3 className="font-body text-[15px] font-bold text-[#111827]">{f.overallScore}</h3>
         <div className="mt-2 flex flex-wrap items-baseline gap-2">
           <span className="font-body text-[28px] font-bold leading-none text-[#111827]">
-            {f.scoreValue}
+            {overallDisplay}
           </span>
-          <span className="font-body text-[13px] text-[#6B7280]">{f.scoreTrend}</span>
+          {overallFormatted != null ? (
+            <span className="font-body text-[13px] text-[#6B7280]">{f.scoreTrend}</span>
+          ) : null}
         </div>
       </section>
 
@@ -118,29 +273,31 @@ export default function CallFeedback() {
         <div className="divide-y divide-[#ececec]">
           <div className="pb-4">
             <h3 className="font-body text-[16px] font-bold text-[#111827]">{f.summaryTitle}</h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-[#374151]">{f.summaryBody}</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-[#374151]">
+              {summaryParagraph}
+            </p>
           </div>
           <div className="py-4">
             <h3 className="font-body text-[14px] font-bold text-[#111827]">{f.didWellTitle}</h3>
             <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[13px] leading-snug text-[#374151]">
-              {f.didWellItems.map((item) => (
-                <li key={item}>{item}</li>
+              {didWellItems.map((item, i) => (
+                <li key={`did-well-${i}-${item.slice(0, 48)}`}>{item}</li>
               ))}
             </ul>
           </div>
           <div className="py-4">
             <h3 className="font-body text-[14px] font-bold text-[#111827]">{f.improveTitle}</h3>
             <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-snug text-[#374151]">
-              {f.improveItems.map((item) => (
-                <li key={item}>{item}</li>
+              {improveItems.map((item, i) => (
+                <li key={`improve-${i}-${item.slice(0, 48)}`}>{item}</li>
               ))}
             </ol>
           </div>
           <div className="py-4">
             <h3 className="font-body text-[14px] font-bold text-[#111827]">{f.sayInsteadTitle}</h3>
             <ul className="mt-2 list-disc space-y-2 pl-5 text-[13px] leading-snug text-[#374151]">
-              {f.sayInsteadItems.map((item) => (
-                <li key={item}>{item}</li>
+              {sayInsteadItems.map((item) => (
+                <li key={item.key}>{item.text}</li>
               ))}
             </ul>
           </div>
@@ -152,7 +309,7 @@ export default function CallFeedback() {
                   {f.skillProduct}
                 </p>
                 <p className="mt-1 font-body text-[15px] font-bold text-[#111827]">
-                  {f.skillScores.product}
+                  {productScore ?? na}
                 </p>
               </div>
               <div>
@@ -160,7 +317,7 @@ export default function CallFeedback() {
                   {f.skillNegotiation}
                 </p>
                 <p className="mt-1 font-body text-[15px] font-bold text-[#111827]">
-                  {f.skillScores.negotiation}
+                  {negotiationScore ?? na}
                 </p>
               </div>
               <div>
@@ -168,7 +325,7 @@ export default function CallFeedback() {
                   {f.skillClosing}
                 </p>
                 <p className="mt-1 font-body text-[15px] font-bold text-[#111827]">
-                  {f.skillScores.closing}
+                  {closingScore ?? na}
                 </p>
               </div>
             </div>
@@ -179,7 +336,7 @@ export default function CallFeedback() {
       {/* Coaching */}
       <DetailCard className="mt-4 mb-1">
         <h3 className="font-body text-[14px] font-bold text-[#111827]">{f.coachingTitle}</h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-[#374151]">{f.coachingBody}</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-[#374151]">{coachingBody}</p>
         <h4 className="mt-4 font-body text-[13px] font-bold text-[#111827]">{f.practiceTitle}</h4>
         <div className="mt-2 flex flex-col gap-1">
           <button

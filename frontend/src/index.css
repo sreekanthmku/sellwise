@@ -51,7 +51,7 @@
     font-display: swap;
 }
 
-/* PWA bootstrap splash (index.html); hidden from App.js after first paint */
+/* PWA bootstrap splash (index.html); fade-out triggered from App.js after ~2s */
 .pwa-splash-screen {
     position: fixed;
     inset: 0;

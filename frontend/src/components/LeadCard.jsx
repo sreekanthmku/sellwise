@@ -1,4 +1,4 @@
-import { Phone, ArrowLeft } from "lucide-react";
+import { Phone, ArrowLeft, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { PriorityBadge } from "@/components/PriorityBadge";
@@ -19,7 +19,7 @@ export const ActionCircle = ({ children, color, testid, onClick }) => (
     type="button"
     onClick={onClick}
     data-testid={testid}
-    className={`flex h-12 w-12 items-center justify-center rounded-full text-white transition-transform hover:scale-105 ${color}`}
+    className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-transform hover:scale-105 ${color}`}
   >
     {children}
   </button>
@@ -30,7 +30,7 @@ export const RecommendedPill = () => {
   return (
     <span
       data-testid="recommended-pill"
-      className="inline-flex items-center justify-center rounded-full border border-[color:var(--success)] bg-white px-2.5 py-0.5 text-[10.5px] font-semibold text-[color:var(--success)]"
+      className="pointer-events-none inline-flex items-center justify-center whitespace-nowrap rounded-full border border-[color:var(--success)] bg-white px-2.5 py-0.5 text-center text-[10.5px] font-semibold text-[color:var(--success)]"
     >
       {t.recommended}
     </span>
@@ -40,6 +40,9 @@ export const RecommendedPill = () => {
 export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const callIsRecommended = lead.recommendedAction === "call";
+  const whatsappIsRecommended = lead.recommendedAction === "whatsapp";
+  const actionOrder = ["call", "whatsapp"];
 
   return (
     <article
@@ -83,34 +86,52 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
             </span>
           </p>
           <div className="mr-6 flex items-start gap-7">
-            <div className="relative flex flex-col items-center">
-              <ActionCircle
-                color="bg-[color:var(--blue-600)]"
-                testid={`call-btn-${lead.id}`}
-                onClick={() => navigate(`/leads/${lead.id}/call`)}
+            {actionOrder.map((action, index) => (
+              <div
+                key={action}
+                className={`relative flex flex-col items-center ${index === 1 ? "ml-[10px]" : ""}`}
               >
-                <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
-              </ActionCircle>
-              {lead.recommendedAction === "call" ? (
-                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                  <RecommendedPill />
-                </div>
-              ) : null}
-            </div>
-            <div className="relative ml-[10px] flex flex-col items-center">
-              <ActionCircle
-                color="bg-[color:var(--success)]"
-                testid={`whatsapp-btn-${lead.id}`}
-                onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}
-              >
-                <WhatsAppIcon size={22} />
-              </ActionCircle>
-              {lead.recommendedAction === "whatsapp" ? (
-                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                  <RecommendedPill />
-                </div>
-              ) : null}
-            </div>
+                {((action === "call" && callIsRecommended) ||
+                  (action === "whatsapp" && whatsappIsRecommended)) && (
+                  <span
+                    className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#FEF08A] text-[#CA8A04] shadow-sm"
+                    data-testid={`${action}-recommended-spark-${lead.id}`}
+                    aria-hidden="true"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  </span>
+                )}
+                {action === "call" ? (
+                  <ActionCircle
+                    color={
+                      callIsRecommended
+                        ? "border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
+                        : "border-[color:var(--blue-600)] bg-white text-[color:var(--blue-600)]"
+                    }
+                    testid={`call-btn-${lead.id}`}
+                    onClick={() => navigate(`/leads/${lead.id}/call`)}
+                  >
+                    <Phone
+                      className="h-5 w-5"
+                      strokeWidth={2.25}
+                      fill={callIsRecommended ? "currentColor" : "none"}
+                    />
+                  </ActionCircle>
+                ) : (
+                  <ActionCircle
+                    color={
+                      whatsappIsRecommended
+                        ? "border-[color:var(--success)] bg-[color:var(--success)] text-white"
+                        : "border-[color:var(--success)] bg-white text-[color:var(--success)]"
+                    }
+                    testid={`whatsapp-btn-${lead.id}`}
+                    onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}
+                  >
+                    <WhatsAppIcon size={22} />
+                  </ActionCircle>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

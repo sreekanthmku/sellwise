@@ -120,7 +120,15 @@ export function createGeminiProvider(config) {
                 throw err;
             }
 
-            const out = validateCallAnalysisResult(parsed);
+            let out;
+            try {
+                out = validateCallAnalysisResult(parsed);
+            } catch (err) {
+                console.error('[gemini] analysis shape validation failed:', err && err.message ? err.message : err);
+                console.error('[gemini] raw LLM text (truncated):', String(text).slice(0, 4000));
+                console.error('[gemini] parsed JSON (truncated):', JSON.stringify(parsed).slice(0, 4000));
+                throw err;
+            }
             console.log('[gemini] validated call analysis JSON shape OK');
             return out;
         },

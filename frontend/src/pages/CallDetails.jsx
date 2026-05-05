@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
+  Loader2,
   MapPin,
   Sparkles,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useLeadsData } from "@/context/LeadsDataContext";
+import { defaultApiBase } from "@/vobiz/constants";
 
 const DetailCard = ({ children, className = "" }) => (
   <section
@@ -49,6 +51,38 @@ function formatEndedAtLabel(d, t) {
   return `${d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}, ${timeStr}`;
 }
 
+const CALL_OUTCOME_LABELS = {
+  interested: "Interested",
+  callback_requested: "Callback Requested",
+  dealership_visit_planned: "Dealership Visit Planned",
+  not_interested: "Not Interested",
+  wrong_number: "Wrong Number",
+  busy: "Busy",
+  test_drive_requested: "Test Drive Requested",
+};
+
+function normalizeCallOutcomeValue(value) {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, "_");
+  return CALL_OUTCOME_LABELS[normalized] ? normalized : "";
+}
+
+function toHumanReadableOutcome(value) {
+  if (typeof value !== "string") return "";
+  if (CALL_OUTCOME_LABELS[value]) return CALL_OUTCOME_LABELS[value];
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function toHumanReadableOrNa(value) {
+  if (typeof value !== "string" || value.trim() === "") return "NA";
+  return value
+    .trim()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 const AiList = ({ icon: Icon, iconClass, items }) => (
   <ul className="mt-2 flex flex-col gap-2">
     {items.map((text) => (
@@ -59,6 +93,24 @@ const AiList = ({ icon: Icon, iconClass, items }) => (
     ))}
   </ul>
 );
+
+/** @param {Record<string, unknown> | null | undefined} analysisResult */
+function recommendedActionLines(analysisResult) {
+  const list = analysisResult?.next_actions;
+  if (Array.isArray(list) && list.length > 0) {
+    return list.map((item) => {
+      const typeSlug = typeof item?.type === "string" ? item.type : "";
+      const typeLabel = toHumanReadableOrNa(typeSlug);
+      const detail = typeof item?.detail === "string" ? item.detail.trim() : "";
+      if (detail && typeLabel === "NA") return detail;
+      if (detail) return `${typeLabel}: ${detail}`;
+      return typeLabel;
+    });
+  }
+  const legacy =
+    typeof analysisResult?.next_action === "string" ? analysisResult.next_action : "";
+  return [toHumanReadableOrNa(legacy)];
+}
 
 export default function CallDetails() {
   const { leadId } = useParams();
@@ -82,10 +134,19 @@ export default function CallDetails() {
     return new Date();
   }, [location.state?.endedAt]);
 
-  const [callOutcome, setCallOutcome] = useState("interestedFollowUp");
+  const seedAnalysisFromNav =
+    location.state?.analysisResult != null && typeof location.state.analysisResult === "object"
+      ? location.state.analysisResult
+      : null;
+
+  const [callOutcome, setCallOutcome] = useState("interested");
   const [leadStatus, setLeadStatus] = useState("new");
   const [nextFollowUp, setNextFollowUp] = useState("");
   const [notes, setNotes] = useState("");
+  const [analysisResult, setAnalysisResult] = useState(seedAnalysisFromNav);
+  const [analysisLoading, setAnalysisLoading] = useState(
+    !seedAnalysisFromNav && Boolean(location.state?.callUuid),
+  );
 
   useEffect(() => {
     if (!lead) return;
@@ -97,11 +158,89 @@ export default function CallDetails() {
     setNextFollowUp(t.callDetails.nextFollowUpValue);
   }, [leadId, lead, t]);
 
-  if (!lead) return <Navigate to="/leads" replace />;
+  useEffect(() => {
+    const passed = location.state?.analysisResult;
+    if (passed && typeof passed === "object") {
+      setAnalysisResult(passed);
+      setAnalysisLoading(false);
+      const normalizedOutcome = normalizeCallOutcomeValue(passed.call_outcome);
+      if (normalizedOutcome) {
+        setCallOutcome(normalizedOutcome);
+      }
+      if (typeof passed.summary === "string" && passed.summary.trim()) {
+        setNotes(passed.summary.trim());
+      }
+      return;
+    }
 
-  const outcomes = t.callDetails.aiOutcomes;
-  const objections = t.callDetails.aiObjections;
-  const actions = t.callDetails.aiActions;
+    const callUuid = location.state?.callUuid;
+    if (!callUuid || typeof callUuid !== "string") {
+      setAnalysisResult(null);
+      setAnalysisLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setAnalysisLoading(true);
+
+    const run = async () => {
+      try {
+        const url = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}`;
+        const res = await fetch(url);
+        const data = await res.json().catch(() => null);
+        if (cancelled) return;
+        if (!res.ok || !data?.ok || !data?.analysis?.result) {
+          const msg = data?.error || data?.hint || `Failed to fetch call summary (HTTP ${res.status})`;
+          toast.error(msg);
+          return;
+        }
+        const result = data.analysis.result;
+        setAnalysisResult(result);
+        const normalizedOutcome = normalizeCallOutcomeValue(result.call_outcome);
+        if (normalizedOutcome) {
+          setCallOutcome(normalizedOutcome);
+        }
+        if (typeof result.summary === "string" && result.summary.trim()) {
+          setNotes(result.summary.trim());
+        }
+      } catch (err) {
+        if (cancelled) return;
+        toast.error(err?.message || "Failed to fetch call summary");
+      } finally {
+        if (!cancelled) setAnalysisLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.state?.callUuid, location.state?.analysisResult]);
+
+  if (!lead) return <Navigate to="/leads" replace />;
+  if (analysisLoading) {
+    return (
+      <AppScreen
+        screenTestId="call-details-loading-screen"
+        mainTestId="call-details-loading-main"
+        mainBgClass="bg-[#F7F8FB]"
+        showBottomNav
+      >
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-[color:var(--suzuki-blue)]" aria-hidden />
+          <p className="text-center font-body text-[16px] font-semibold text-[#374151]">Creating summary...</p>
+        </div>
+      </AppScreen>
+    );
+  }
+
+  const outcomes = [
+    `Interest Level: ${toHumanReadableOrNa(analysisResult?.interest_level)}`,
+    `Customer Use Case: ${toHumanReadableOrNa(analysisResult?.customer_use_case)}`,
+    `Goods Type: ${toHumanReadableOrNa(analysisResult?.goods_type)}`,
+  ];
+  const objections = [toHumanReadableOrNa(analysisResult?.customer_drivers)];
+  const actions = recommendedActionLines(analysisResult);
 
   return (
     <AppScreen
@@ -165,11 +304,11 @@ export default function CallDetails() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="interestedFollowUp">
-                      {t.callDetails.outcomes.interestedFollowUp}
-                    </SelectItem>
-                    <SelectItem value="notInterested">{t.callDetails.outcomes.notInterested}</SelectItem>
-                    <SelectItem value="callback">{t.callDetails.outcomes.callback}</SelectItem>
+                    {Object.keys(CALL_OUTCOME_LABELS).map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {CALL_OUTCOME_LABELS[value]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -272,6 +411,8 @@ export default function CallDetails() {
                 state: {
                   durationSeconds,
                   endedAt: endedAt.toISOString(),
+                  callUuid: location.state?.callUuid ?? null,
+                  analysisResult: analysisResult ?? undefined,
                 },
               })
             }

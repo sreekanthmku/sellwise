@@ -73,8 +73,8 @@ export const translations = {
       nextFollowUp: "Next Follow-Up",
       nextFollowUpValue: "May 18, 2026 at 2:00 PM",
       notes: "Notes",
-      keyOutcomes: "Key Outcomes",
-      objectionsRaised: "Objections Raised",
+      keyOutcomes: "Key Insights",
+      objectionsRaised: "Customer Drivers",
       recommendedActions: "Recommended Actions",
       callFeedback: "Call Feedback",
       saveAndClose: "Save & Close",
@@ -110,6 +110,7 @@ export const translations = {
     },
     callFeedbackPage: {
       pageHeading: "Call Feedback",
+      notAvailable: "NA",
       overallScore: "Overall Score",
       scoreValue: "8.5/10",
       scoreTrend: "+3 from last call",
@@ -397,6 +398,7 @@ export const translations = {
     },
     callFeedbackPage: {
       pageHeading: "Umpan Balik Panggilan",
+      notAvailable: "NA",
       overallScore: "Skor Keseluruhan",
       scoreValue: "8.5/10",
       scoreTrend: "+3 dari panggilan terakhir",
@@ -684,6 +686,7 @@ export const translations = {
     },
     callFeedbackPage: {
       pageHeading: "通話フィードバック",
+      notAvailable: "NA",
       overallScore: "総合スコア",
       scoreValue: "8.5/10",
       scoreTrend: "前回比 +3",

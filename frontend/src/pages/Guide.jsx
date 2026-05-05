@@ -11,6 +11,7 @@ import {
   postGenerateRouter,
   saveGuideChatMessages,
 } from "@/lib/guideSession";
+import { useVirtualKeyboardOpen } from "@/hooks/useVirtualKeyboardOpen";
 
 const nextId = () =>
   `guide-${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`}`;
@@ -110,6 +111,7 @@ export default function Guide() {
   const scrollRef = useRef(null);
   /** Load stored transcript once per `sessionId` (avoid clobbering in-flight chat on re-renders). */
   const lastHydratedSessionIdRef = useRef(undefined);
+  const virtualKeyboardOpen = useVirtualKeyboardOpen();
 
   useEffect(() => {
     let cancelled = false;
@@ -233,7 +235,8 @@ export default function Guide() {
       screenTestId="guide-screen"
       mainTestId="guide-main"
       mainBgClass="bg-[#F7F8FB]"
-      showBottomNav
+      showBottomNav={!virtualKeyboardOpen}
+      lockViewportHeight
     >
       {guideSessionId ? (
         <span data-testid="guide-session-id" className="sr-only">

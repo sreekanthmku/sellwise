@@ -156,7 +156,7 @@ export default function LeadDetails() {
           <div className="flex w-[92px] shrink-0 flex-col items-center justify-center border-l border-[#e4e4e4] pl-3">
             <div className="relative flex flex-col items-center">
               <ActionCircle
-                color="bg-[color:var(--blue-600)]"
+                color="border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
                 testid="lead-detail-call"
                 onClick={() => navigate(`/leads/${lead.id}/call`)}
               >
@@ -174,7 +174,7 @@ export default function LeadDetails() {
               }
             >
               <ActionCircle
-                color="bg-[color:var(--success)]"
+                color="border-[color:var(--success)] bg-[color:var(--success)] text-white"
                 testid="lead-detail-whatsapp"
                 onClick={() => openWhatsAppChat(detail.phoneDisplay)}
               >

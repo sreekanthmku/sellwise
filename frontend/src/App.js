@@ -16,6 +16,8 @@ import Performance from "@/pages/Performance";
 import Guide from "@/pages/Guide";
 import { DocumentChrome } from "@/components/DocumentChrome";
 
+const SPLASH_VISIBLE_MS = 2000;
+
 function App() {
   useEffect(() => {
     const el = document.getElementById("pwa-splash-screen");
@@ -26,12 +28,17 @@ function App() {
       done = true;
       el.remove();
     };
-    requestAnimationFrame(() => {
-      el.classList.add("pwa-splash-screen--hide");
-    });
+    const hideTimer = window.setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.classList.add("pwa-splash-screen--hide");
+      });
+    }, SPLASH_VISIBLE_MS);
     el.addEventListener("transitionend", remove, { once: true });
-    const fallback = window.setTimeout(remove, 450);
-    return () => window.clearTimeout(fallback);
+    const fallback = window.setTimeout(remove, SPLASH_VISIBLE_MS + 500);
+    return () => {
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (
