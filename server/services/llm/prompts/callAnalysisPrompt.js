@@ -391,7 +391,7 @@ export function buildCallAnalysisPrompt(metadata) {
       tone_and_pace
       two_way_communication
       needs_discovery
-      fab_explanation
+      fab_explanation 
       objection_offer_handling
       professionalism_focus
       closing_protocol

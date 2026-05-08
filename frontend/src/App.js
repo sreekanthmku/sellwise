@@ -15,6 +15,9 @@ import ActiveCall from "@/pages/ActiveCall";
 import Performance from "@/pages/Performance";
 import Guide from "@/pages/Guide";
 import { DocumentChrome } from "@/components/DocumentChrome";
+import Profile from "@/pages/Profile";
+import HeaderProfileNavigation from "@/components/HeaderProfileNavigation";
+import Analyze from "@/pages/Analyze";
 
 const SPLASH_VISIBLE_MS = 2000;
 
@@ -45,6 +48,7 @@ function App() {
     <LanguageProvider>
       <div className="App">
         <BrowserRouter>
+          <HeaderProfileNavigation />
           <DocumentChrome />
           <VobizProvider>
             <CallShell />
@@ -58,6 +62,8 @@ function App() {
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/perform" element={<Performance />} />
                 <Route path="/guide" element={<Guide />} />
+                <Route path="/analyze" element={<Analyze />} />
+                <Route path="/profile" element={<Profile />} />
               </Routes>
             </LeadsDataProvider>
           </VobizProvider>

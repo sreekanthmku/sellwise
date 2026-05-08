@@ -67,6 +67,10 @@ chainlit.md
 agenthub/agents/youtube/db
 call-analysis/
 
+# Local recordings / callback payloads
+recording-callback-*.json
+recordings/
+
 # Archive files and large assets
 **/*.zip
 **/*.tar.gz

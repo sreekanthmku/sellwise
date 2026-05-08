@@ -16,6 +16,7 @@ export function createCallAnalysisLlmProvider(config) {
         return createGeminiProvider(config);
     }
     if (id === 'openai') {
+        console.log('[llm] factory: creating OpenAI provider', { model: config.openaiModel || 'gpt-4o' });
         return createOpenAIProvider(config);
     }
     throw new Error(`Unknown LLM_PROVIDER "${config.llmProvider}". Use: gemini | openai | none`);

@@ -1,0 +1,9 @@
+# Root build context — keep the daemon upload small and avoid secrets in the image.
+.git
+frontend
+vobizFE
+recordings
+**/node_modules
+*.mp3
+recording-callback-*.json
+server/.env
