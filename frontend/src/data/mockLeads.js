@@ -12,6 +12,40 @@ const IMG = {
 
 export const humanLeads = [
   {
+    id: "h13",
+    name: "Mankiran",
+    interestedIn: "Fronx",
+    priority: "high",
+    tags: ["needCallback"],
+    lastContact: { value: 0, unit: "hours" },
+    recommendedAction: "call",
+    detail: {
+      phoneDisplay: "+919711159305",
+      location: "—",
+      leadSourceKey: "website",
+      added: { value: 0, unit: "hours" },
+      briefPersonaKey: "generic",
+      preferences: [
+        { key: "type", valueKey: "suv" },
+        { key: "budget", valueKey: "budgetDiscuss" },
+        { key: "usage", valueKey: "commute" },
+      ],
+      nextSteps: [
+        { titleKey: "followUpCall", subtitleKey: "followUpCallSubGeneric" },
+        { titleKey: "testRide", subtitleKey: "testRideSubGeneric" },
+      ],
+      callHistory: [],
+      recommendedModels: [
+        {
+          name: "Fronx",
+          rangeKey: "fronxRange",
+          priceKey: "lakh812",
+          image: IMG.compact,
+        },
+      ],
+    },
+  },
+  {
     id: "h12",
     name: "Tushar Gupta",
     interestedIn: "Fronx",
