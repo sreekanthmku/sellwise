@@ -6,11 +6,8 @@ const dotColor = {
   low: "bg-[color:var(--priority-low)]",
 };
 
-const labelClass = {
-  high: "text-[color:var(--priority-high)]",
-  medium: "text-[#6b7280]",
-  low: "text-[#6b7280]",
-};
+/** Label text: dark grey in reference; colour is in the dot only. */
+const labelClass = "text-[#4b5563]";
 
 export const PriorityBadge = ({ priority }) => {
   const { t } = useLanguage();
@@ -21,7 +18,7 @@ export const PriorityBadge = ({ priority }) => {
       className="inline-flex shrink-0 items-center gap-1.5"
     >
       <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dotColor[key]}`} aria-hidden />
-      <span className={`text-[13px] font-normal leading-none ${labelClass[key]}`}>{t.priority[key]}</span>
+      <span className={`text-[13px] font-medium leading-none ${labelClass}`}>{t.priority[key]}</span>
     </span>
   );
 };

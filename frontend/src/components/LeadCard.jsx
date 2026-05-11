@@ -19,7 +19,7 @@ export const ActionCircle = ({ children, color, testid, onClick }) => (
     type="button"
     onClick={onClick}
     data-testid={testid}
-    className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-transform hover:scale-105 ${color}`}
+    className={`flex h-12 w-12 items-center justify-center rounded-full border transition-transform hover:scale-105 ${color}`}
   >
     {children}
   </button>
@@ -47,11 +47,11 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
   return (
     <article
       data-testid={`lead-card-${lead.id}`}
-      className="overflow-hidden rounded-2xl border border-[#e4e4e4] bg-white"
+      className="overflow-hidden rounded-[20px] border border-[#ebebeb] bg-white"
     >
       <div className="px-4 pt-4 pb-5">
         {/* Top row: name + priority */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => navigate(`/leads/${lead.id}`)}
@@ -64,7 +64,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
         </div>
 
         {/* Interested in */}
-        <p className="mt-0 text-[14px] text-[color:var(--gray-300)]">
+        <p className="mt-1 text-[14px] text-[color:var(--gray-200)]">
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 
@@ -85,7 +85,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
               {formatLastContact(lead.lastContact, t)}
             </span>
           </p>
-          <div className="mr-6 flex items-start gap-7">
+          <div className="flex items-start gap-5">
             {actionOrder.map((action, index) => (
               <div
                 key={action}
@@ -122,7 +122,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
                     color={
                       whatsappIsRecommended
                         ? "border-[color:var(--success)] bg-[color:var(--success)] text-white"
-                        : "border-[color:var(--success)] bg-white text-[color:var(--success)]"
+                        : "border-[#c6ebd4] bg-white text-[color:var(--success)]"
                     }
                     testid={`whatsapp-btn-${lead.id}`}
                     onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}

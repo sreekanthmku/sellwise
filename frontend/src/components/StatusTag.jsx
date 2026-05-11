@@ -13,15 +13,15 @@ const TAG_CONFIG = {
   },
   financeInterested: {
     icon: CreditCard,
-    bg: "bg-[color:var(--yellow-100)]",
-    text: "text-[color:var(--gray-300)]",
-    iconColor: "text-[color:var(--gray-300)]",
+    bg: "bg-[#fdf0f0]",
+    text: "text-[#4b5563]",
+    iconColor: "text-[#4b5563]",
   },
   needCallback: {
     icon: Phone,
-    bg: "bg-[color:var(--red-100)]",
-    text: "text-[color:var(--gray-300)]",
-    iconColor: "text-[color:var(--gray-300)]",
+    bg: "bg-[#fef9e7]",
+    text: "text-[#4b5563]",
+    iconColor: "text-[#4b5563]",
   },
   priceEnquiry: {
     icon: Tag,
@@ -57,7 +57,7 @@ export const StatusTag = ({ tagKey }) => {
   return (
     <span
       data-testid={`tag-${tagKey}`}
-      className={`flex min-w-0 w-full items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-medium leading-snug ${cfg.bg} ${cfg.text}`}
+      className={`flex min-w-0 w-full items-center justify-center gap-1.5 rounded-full border border-black/[0.04] px-2.5 py-1.5 text-[12px] font-medium leading-snug ${cfg.bg} ${cfg.text}`}
     >
       <Icon className={`h-3.5 w-3.5 shrink-0 ${cfg.iconColor}`} strokeWidth={2} />
       <span className="min-w-0 break-words text-center [overflow-wrap:anywhere]">
