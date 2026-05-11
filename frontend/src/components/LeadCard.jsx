@@ -69,17 +69,10 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 
-        {/* Tags: max 2, single row */}
-        <div className="mt-3 flex flex-nowrap items-center gap-2">
+        {/* Tags: max 2, single row; width follows content */}
+        <div className="mt-3 flex flex-nowrap items-center justify-start gap-2">
           {displayTags.map((tagKey) => (
-            <div
-              key={tagKey}
-              className={
-                displayTags.length === 2
-                  ? "min-w-0 flex-1 basis-0"
-                  : "min-w-0 shrink-0"
-              }
-            >
+            <div key={tagKey} className="inline-flex shrink-0">
               <StatusTag tagKey={tagKey} />
             </div>
           ))}
