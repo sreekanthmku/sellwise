@@ -1,5 +1,8 @@
-import { Search, User } from "lucide-react";
+import { User } from "lucide-react";
 import { LangIconButton } from "@/components/LangIconButton";
+
+const headerIconBtnClass =
+  "flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f4fc] text-[#6b7380] transition-colors hover:bg-[#e9ecf7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]";
 
 const IconButton = ({ children, label, testid, onClick }) => (
   <button
@@ -7,7 +10,7 @@ const IconButton = ({ children, label, testid, onClick }) => (
     onClick={onClick}
     aria-label={label}
     data-testid={testid}
-    className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--blue-100)] text-[color:var(--gray-200)] transition-colors hover:bg-[color:var(--blue-200)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+    className={headerIconBtnClass}
   >
     {children}
   </button>
@@ -31,13 +34,10 @@ export const AppHeader = () => (
         SellWise
       </span>
     </div>
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-[10px]">
       <LangIconButton />
-      <IconButton label="Search" testid="header-search-btn">
-        <Search className="h-5 w-5" strokeWidth={2} />
-      </IconButton>
       <IconButton label="Profile" testid="header-profile-btn">
-        <User className="h-5 w-5" strokeWidth={2} />
+        <User className="h-5 w-5" fill="currentColor" strokeWidth={2.25} />
       </IconButton>
     </div>
   </header>

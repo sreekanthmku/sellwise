@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { RecentCallCard } from "@/components/RecentCallCard";
@@ -6,6 +7,7 @@ import {
   performanceRecentCalls,
   performanceToday,
 } from "@/data/performance";
+import { useVobiz } from "@/vobiz/VobizProvider";
 
 function MetricBlock({ value, label, testId }) {
   return (
@@ -25,10 +27,36 @@ function MetricBlock({ value, label, testId }) {
 
 export default function Performance() {
   const { t } = useLanguage();
+  const { callHistory } = useVobiz();
 
   const onViewFeedback = () => {
     toast.message(t.callDetails.feedbackToast);
   };
+
+  const liveRecentCalls = useMemo(() => {
+    if (!Array.isArray(callHistory) || callHistory.length === 0) return [];
+    return callHistory.map((row, index) => {
+      const endedDate = row.endedAtIso ? new Date(row.endedAtIso) : null;
+      const hasValidDate = endedDate && !Number.isNaN(endedDate.getTime());
+      const timeLabel = hasValidDate
+        ? endedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : t.performance.today;
+      return {
+        id: row.id || `live-call-${index}`,
+        name: row.name || "Unknown",
+        callType: "human",
+        outcome:
+          row.endReason === "failed" || row.endReason === "busy"
+            ? "notInterested"
+            : "followUp",
+        avatarVariant: "purple",
+        timeLabel,
+        callUuid: row.callUuid || null,
+      };
+    });
+  }, [callHistory, t.performance.today]);
+
+  const rowsToRender = liveRecentCalls.length > 0 ? liveRecentCalls : performanceRecentCalls;
 
   return (
     <AppScreen
@@ -111,7 +139,7 @@ export default function Performance() {
           </div>
 
           <div className="mt-3.5 flex flex-col gap-3" data-testid="recent-calls-list">
-            {performanceRecentCalls.map((row) => (
+            {rowsToRender.map((row) => (
               <RecentCallCard
                 key={row.id}
                 testId={`recent-call-${row.id}`}
@@ -119,7 +147,8 @@ export default function Performance() {
                 callType={row.callType}
                 outcome={row.outcome}
                 avatarVariant={row.avatarVariant}
-                timeLabel={t.performance.sampleTimes[row.timeKey]}
+                timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
+                callUuid={row.callUuid}
                 onViewFeedback={onViewFeedback}
               />
             ))}

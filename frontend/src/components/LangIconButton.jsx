@@ -18,9 +18,9 @@ export const LangIconButton = () => {
       <DropdownMenuTrigger
         data-testid="lang-icon-button"
         aria-label="Change language"
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--blue-100)] text-[color:var(--gray-200)] transition-colors hover:bg-[color:var(--blue-200)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f4fc] text-[#6b7380] transition-colors hover:bg-[#e9ecf7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
       >
-        <Globe className="h-5 w-5" strokeWidth={2} />
+        <Globe className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px] rounded-xl">
         {languages.map((l) => (

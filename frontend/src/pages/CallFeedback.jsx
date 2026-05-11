@@ -88,13 +88,6 @@ export default function CallFeedback() {
 
   useEffect(() => {
     const passed = location.state?.analysisResult;
-    if (passed && typeof passed === "object") {
-      setAnalysisResult(passed);
-      setAnalysisLoading(false);
-      setAnalysisError("");
-      return;
-    }
-
     const callUuid = location.state?.callUuid;
     if (!callUuid || typeof callUuid !== "string") {
       setAnalysisLoading(false);
@@ -109,17 +102,48 @@ export default function CallFeedback() {
 
     const run = async () => {
       try {
-        const url = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}`;
-        const res = await fetch(url);
-        const data = await res.json().catch(() => null);
+        // If we already have some analysis (typically details from navigation),
+        // keep it while we fetch the latest details + feedback payloads.
+        if (passed && typeof passed === "object") {
+          setAnalysisResult(passed);
+        }
+
+        // 1) Get details first (for summary + non-feedback fields)
+        const detailsUrl = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}`;
+        const detailsRes = await fetch(detailsUrl);
+        const detailsData = await detailsRes.json().catch(() => null);
         if (cancelled) return;
-        if (!res.ok || !data?.ok || !data?.analysis) {
-          const msg = data?.error || data?.hint || `Failed to create summary (HTTP ${res.status})`;
+        if (!detailsRes.ok || !detailsData?.ok || !detailsData?.analysis) {
+          const msg =
+            detailsData?.error ||
+            detailsData?.hint ||
+            `Failed to create summary (HTTP ${detailsRes.status})`;
           setAnalysisError(msg);
           toast.error(msg);
           return;
         }
-        setAnalysisResult(data.analysis.result || null);
+        const detailsResult = detailsData.analysis.result || null;
+
+        // 2) Then fetch feedback-only payload and merge
+        const feedbackUrl = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}/feedback`;
+        const feedbackRes = await fetch(feedbackUrl);
+        const feedbackData = await feedbackRes.json().catch(() => null);
+        if (cancelled) return;
+        if (!feedbackRes.ok || !feedbackData?.ok || !feedbackData?.analysis) {
+          const msg =
+            feedbackData?.error ||
+            feedbackData?.hint ||
+            `Failed to load feedback (HTTP ${feedbackRes.status})`;
+          setAnalysisError(msg);
+          toast.error(msg);
+          setAnalysisResult(detailsResult);
+          return;
+        }
+        const feedbackResult = feedbackData.analysis.result || null;
+        setAnalysisResult({
+          ...(detailsResult && typeof detailsResult === "object" ? detailsResult : {}),
+          ...(feedbackResult && typeof feedbackResult === "object" ? feedbackResult : {}),
+        });
       } catch (err) {
         if (cancelled) return;
         const msg = err?.message || "Failed to fetch call feedback summary";

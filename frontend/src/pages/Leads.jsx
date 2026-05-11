@@ -1,4 +1,4 @@
-import { User, Bot } from "lucide-react";
+import { User, Bot, Phone, Search, Filter } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { LeadCard } from "@/components/LeadCard";
@@ -19,13 +19,39 @@ export default function Leads() {
       mainBgClass="bg-[#F7F8FB]"
       showBottomNav
     >
-      <div className="pt-[16px] pb-0">
+      <div className="flex items-center justify-between gap-3 pt-[16px] pb-0">
         <h1
           data-testid="page-title"
           className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--gray-300)]"
         >
           {t.myLeads}
         </h1>
+        <div className="flex shrink-0 items-center gap-[10px]">
+          <button
+            type="button"
+            data-testid="leads-header-phone-btn"
+            aria-label="Phone"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e9ebef] bg-white text-[#6b7380] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+          >
+            <Phone className="h-[18px] w-[18px]" fill="currentColor" strokeWidth={2.25} />
+          </button>
+          <button
+            type="button"
+            data-testid="leads-header-search-btn"
+            aria-label="Search"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e9ebef] bg-white text-[#6b7380] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+          >
+            <Search className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth={2.75} />
+          </button>
+          <button
+            type="button"
+            data-testid="leads-header-filter-btn"
+            aria-label="Filter"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e9ebef] bg-white text-[#6b7380] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+          >
+            <Filter className="h-[18px] w-[18px]" fill="currentColor" strokeWidth={2.25} />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex gap-2 pb-2" data-testid="leads-tabs">

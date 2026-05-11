@@ -20,6 +20,7 @@ const OUTCOME_TEXT = {
  */
 export function RecentCallCard({
   name,
+  callUuid,
   callType,
   outcome,
   timeLabel,
@@ -50,6 +51,11 @@ export function RecentCallCard({
             <p className="truncate font-body text-[16px] font-bold leading-tight text-[color:var(--gray-300)]">
               {name}
             </p>
+            {callUuid ? (
+              <p className="mt-0.5 truncate text-[12px] font-medium leading-snug text-[color:var(--gray-200)]">
+                UUID: {callUuid}
+              </p>
+            ) : null}
             <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="text-[13px] font-normal leading-snug text-[color:var(--gray-200)]">
                 {typeLabel}

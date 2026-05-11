@@ -14,11 +14,13 @@ import { renderAnalysisBodyFromPayload } from "./callAnalysis";
 import { defaultApiBase } from "./constants";
 
 const VobizContext = createContext(null);
+const CALL_HISTORY_STORAGE_KEY = "sellwise_call_history_v1";
 
 /** Set before `login()` so `onLogin` navigates here instead of default `/leads`. */
 export const SELLWISE_VOBIZ_POST_LOGIN_PATH_KEY = "sellwise_vobiz_post_login";
 
 const MAX_EVENT_LOG = 500;
+const MAX_CALL_HISTORY = 25;
 
 /** Avoid duplicate boot lines under React StrictMode double mount. */
 let sdkBootLogSent = false;
@@ -62,6 +64,39 @@ function formatMmSs(totalSeconds) {
   const m = Math.floor(s / 60);
   const r = s % 60;
   return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
+function readInitialCallHistory() {
+  try {
+    const raw = window.localStorage.getItem(CALL_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((row) => row && typeof row === "object")
+      .map((row) => ({
+        id:
+          typeof row.id === "string" && row.id.length > 0
+            ? row.id
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        callUuid: typeof row.callUuid === "string" ? row.callUuid : null,
+        name: typeof row.name === "string" && row.name.trim() ? row.name.trim() : "Unknown",
+        leadId: row.leadId != null ? String(row.leadId) : null,
+        durationSeconds:
+          typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+            ? Math.max(0, Math.floor(row.durationSeconds))
+            : 0,
+        endedAtIso:
+          typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+            ? row.endedAtIso
+            : new Date().toISOString(),
+        endReason:
+          row.endReason === "busy" || row.endReason === "failed" ? row.endReason : "ended",
+      }))
+      .slice(0, MAX_CALL_HISTORY);
+  } catch {
+    return [];
+  }
 }
 
 export function VobizProvider({ children }) {
@@ -110,6 +145,7 @@ export function VobizProvider({ children }) {
   const [keypadOpen, setKeypadOpen] = useState(false);
 
   const [eventLog, setEventLog] = useState([]);
+  const [callHistory, setCallHistory] = useState(() => readInitialCallHistory());
 
   /** Set after a connected call ends (terminate/fail); cleared on new dial/login. Optional leadId ties session to outbound lead flow. */
   const [lastCallSession, setLastCallSession] = useState(null);
@@ -138,6 +174,21 @@ export function VobizProvider({ children }) {
     const time = new Date().toLocaleTimeString("en-US", { hour12: false });
     setEventLog([{ id: "log-clear", time, message: "Log cleared", type: "info" }]);
   }, []);
+
+  const appendCallHistory = useCallback((entry) => {
+    setCallHistory((prev) => {
+      const next = [entry, ...prev];
+      return next.length > MAX_CALL_HISTORY ? next.slice(0, MAX_CALL_HISTORY) : next;
+    });
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CALL_HISTORY_STORAGE_KEY, JSON.stringify(callHistory));
+    } catch {
+      // Ignore quota/private-mode storage errors.
+    }
+  }, [callHistory]);
 
   useEffect(() => {
     if (sdkBootLogSent) return;
@@ -529,6 +580,18 @@ export function VobizProvider({ children }) {
               endedDialSeq: endedDialSeqForSession,
               endReason: "ended",
             });
+            appendCallHistory({
+              id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+              callUuid: uuid && typeof uuid === "string" && uuid.length > 0 ? uuid : null,
+              name:
+                metaSnapshot && typeof metaSnapshot.name === "string" && metaSnapshot.name.trim()
+                  ? metaSnapshot.name.trim()
+                  : "Unknown",
+              leadId: leadIdFromMeta,
+              durationSeconds,
+              endedAtIso: new Date().toISOString(),
+              endReason: "ended",
+            });
           }
 
           hadAnsweredCallRef.current = false;
@@ -619,6 +682,18 @@ export function VobizProvider({ children }) {
               endedAtIso: new Date().toISOString(),
               leadId: leadIdFromMeta,
               endedDialSeq: endedDialSeqForSession,
+              endReason: remoteBusy ? "busy" : "failed",
+            });
+            appendCallHistory({
+              id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+              callUuid: uuid && typeof uuid === "string" && uuid.length > 0 ? uuid : null,
+              name:
+                metaSnapshot && typeof metaSnapshot.name === "string" && metaSnapshot.name.trim()
+                  ? metaSnapshot.name.trim()
+                  : "Unknown",
+              leadId: leadIdFromMeta,
+              durationSeconds,
+              endedAtIso: new Date().toISOString(),
               endReason: remoteBusy ? "busy" : "failed",
             });
           }
@@ -998,6 +1073,7 @@ export function VobizProvider({ children }) {
       setKeypadOpen,
       eventLog,
       clearLog,
+      callHistory,
       lastCallSession,
       clearLastCallSession,
     }),
@@ -1033,6 +1109,7 @@ export function VobizProvider({ children }) {
       keypadOpen,
       eventLog,
       clearLog,
+      callHistory,
       lastCallSession,
       clearLastCallSession,
     ]

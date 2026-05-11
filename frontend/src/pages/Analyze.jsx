@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { CalendarDays, MessageCircleMore, PhoneCall, UserRoundCheck } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarRange,
+  Link2,
+  MessageCircleMore,
+  PhoneCall,
+  Smile,
+  UserRoundCheck,
+} from "lucide-react";
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
@@ -21,8 +29,42 @@ function StatusRow({ label, value, color }) {
       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
       <span className="w-[132px] text-[14px] leading-none text-[color:var(--gray-200)]">{label}</span>
       <span className="flex-1 border-b border-dotted border-[#9ca3af]/70" />
-      <span className="w-8 text-right text-[14px] font-medium leading-none text-[color:var(--gray-300)]">
+      <span className="w-8 text-left text-[14px] font-medium leading-none text-[color:var(--gray-300)]">
         {value}
+      </span>
+    </div>
+  );
+}
+
+function ProgressRow({ label, value, total, color }) {
+  const percentage = Math.round((value / total) * 100);
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+      <span className="w-[118px] text-[13px] leading-none text-[#61656b]">{label}</span>
+      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#d7dbe2]">
+        <div className="h-full rounded-full" style={{ width: `${percentage}%`, backgroundColor: color }} />
+      </div>
+      <span className="w-[18px] text-left text-[13px] font-semibold leading-none text-[#1f2227]">
+        {value}
+      </span>
+      <span className="w-[28px] text-left text-[12px] font-semibold leading-none" style={{ color }}>
+        {percentage}%
+      </span>
+    </div>
+  );
+}
+
+function OutcomeRow({ label, value, total, color }) {
+  const percentage = Math.round((value / total) * 100);
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+      <span className="w-[144px] text-[13px] leading-none text-[#61656b]">{label}</span>
+      <span className="flex-1 border-b border-dashed border-[#8f939a]" />
+      <span className="w-[18px] text-left text-[13px] font-semibold leading-none text-[#1f2227]">{value}</span>
+      <span className="w-[28px] text-left text-[12px] font-semibold leading-none" style={{ color }}>
+        {percentage}%
       </span>
     </div>
   );
@@ -30,7 +72,7 @@ function StatusRow({ label, value, color }) {
 
 export default function Analyze() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("monthly");
+  const [activeTab, setActiveTab] = useState("daily");
 
   const monthlyStatusRows = [
     { key: "new", value: 120, color: "#1d4ed8" },
@@ -51,25 +93,40 @@ export default function Analyze() {
   ];
 
   const dailyStatusRows = [
-    { key: "connected", value: 52, color: "#22c55e" },
-    { key: "noAnswer", value: 34, color: "#ef4444" },
-    { key: "callbackRequested", value: 18, color: "#f59e0b" },
-    { key: "busy", value: 12, color: "#fb7185" },
-    { key: "interested", value: 8, color: "#22c55e" },
-    { key: "notInterested", value: 4, color: "#ef4444" },
+    { label: "Connected", value: 52, color: "#29b85a" },
+    { label: "No answer", value: 34, color: "#f04343" },
+    { label: "Callback requested", value: 18, color: "#f09a0c" },
+    { label: "Busy", value: 12, color: "#eed33c" },
+    { label: "Wrong number", value: 5, color: "#aeb0b2" },
   ];
 
   const dailyDispositionRows = [
-    { key: "interested", value: 36, color: "#22c55e" },
-    { key: "followUpRequired", value: 28, color: "#f59e0b" },
-    { key: "callbackLater", value: 20, color: "#fb923c" },
-    { key: "testRideScheduled", value: 14, color: "#a855f7" },
-    { key: "visitedShowroom", value: 9, color: "#6366f1" },
-    { key: "bookingLikely", value: 6, color: "#14b8a6" },
-    { key: "booked", value: 3, color: "#22c55e" },
-    { key: "notInterested", value: 7, color: "#ef4444" },
-    { key: "wrongNumber", value: 5, color: "#dc2626" },
+    { label: "Interested", value: 36, color: "#29b85a" },
+    { label: "Follow-up required", value: 28, color: "#f18f00" },
+    { label: "Callback later", value: 20, color: "#f28d36" },
+    { label: "Test ride scheduled", value: 14, color: "#9752e1" },
+    { label: "Visited showroom", value: 9, color: "#5f61dd" },
+    { label: "Booking Likely", value: 6, color: "#1fb2a3" },
+    { label: "Booked", value: 3, color: "#29b85a" },
+    { label: "Not interested", value: 7, color: "#f04343" },
+    { label: "Lost", value: 5, color: "#df2b2b" },
   ];
+
+  const dailyTotalFollowUps = 128;
+  const donutSegments = [
+    { key: "human", label: t.analyze.daily.metrics.humanCalling, value: 52, color: "#7758ff" },
+    { key: "ai", label: t.analyze.daily.metrics.aiCalling, value: 46, color: "#34c7f3" },
+    { key: "messaging", label: t.analyze.daily.metrics.messaging, value: 30, color: "#3bd977" },
+  ];
+  const donutBackground = `conic-gradient(${donutSegments
+    .map((segment, index) => {
+      const start = donutSegments
+        .slice(0, index)
+        .reduce((sum, current) => sum + Math.round((current.value / dailyTotalFollowUps) * 100), 0);
+      const end = start + Math.round((segment.value / dailyTotalFollowUps) * 100);
+      return `${segment.color} ${start}% ${end}%`;
+    })
+    .join(", ")})`;
 
   const nextStepIconByKey = {
     callBackWarmLeads: PhoneCall,
@@ -92,30 +149,37 @@ export default function Analyze() {
         <p className="mt-2 text-[14px] leading-snug text-[color:var(--gray-200)]">{t.analyze.subtitle}</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-none pb-10 pt-4">
-        <div className="rounded-[14px] border border-[#e4e7ee] bg-[#f4f5f8] p-1">
-          <div className="grid grid-cols-2 gap-2">
+      <div className="flex-1 overflow-y-auto overscroll-none pb-8 pt-4">
+        <div className="rounded-[16px] bg-[#edf0f5] p-1">
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("daily")}
+              className={`rounded-[12px] px-3 py-2 text-[13px] font-semibold ${
+                activeTab === "daily"
+                  ? "bg-[color:var(--blue-600)] text-white"
+                  : "bg-[#f7f8fb] text-[color:var(--blue-500)]"
+              }`}
+            >
+              {t.analyze.dailySummary}
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab("monthly")}
-              className={`rounded-[12px] px-3 py-2 text-[14px] font-semibold ${
+              className={`rounded-[12px] px-3 py-2 text-[13px] font-semibold ${
                 activeTab === "monthly"
                   ? "bg-[color:var(--blue-600)] text-white"
-                  : "bg-white text-[color:var(--blue-500)]"
+                  : "bg-[#f7f8fb] text-[color:var(--blue-500)]"
               }`}
             >
               {t.analyze.monthlySummary}
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("daily")}
-              className={`rounded-[12px] px-3 py-2 text-[14px] font-semibold ${
-                activeTab === "daily"
-                  ? "bg-[color:var(--blue-600)] text-white"
-                  : "bg-white text-[color:var(--blue-500)]"
-              }`}
+              className="flex items-center justify-center rounded-[12px] bg-[#f7f8fb] text-[color:var(--gray-200)]"
+              aria-label="Open date selector"
             >
-              {t.analyze.dailySummary}
+              <CalendarRange className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -165,7 +229,7 @@ export default function Analyze() {
                       <th className="px-3.5 py-2">{t.analyze.table.customer}</th>
                       <th className="px-2 py-2">{t.analyze.table.vehicle}</th>
                       <th className="px-2 py-2">{t.analyze.table.saleDate}</th>
-                      <th className="px-3.5 py-2 text-right">{t.analyze.table.value}</th>
+                      <th className="px-3.5 py-2 text-left">{t.analyze.table.value}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -177,7 +241,7 @@ export default function Analyze() {
                         <td className="border-b border-[#eef1f5] px-3.5 py-2.5">{row.customer}</td>
                         <td className="border-b border-[#eef1f5] px-2 py-2.5">{row.vehicle}</td>
                         <td className="border-b border-[#eef1f5] px-2 py-2.5">{row.saleDate}</td>
-                        <td className="border-b border-[#eef1f5] px-3.5 py-2.5 text-right">{row.value}</td>
+                        <td className="border-b border-[#eef1f5] px-3.5 py-2.5 text-left">{row.value}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -204,65 +268,154 @@ export default function Analyze() {
           </>
         ) : (
           <>
-            <div className="mt-3 grid grid-cols-2 gap-2.5">
-              <MetricCard label={t.analyze.daily.metrics.totalLeadsFollowedUp} value="128" />
-              <MetricCard label={t.analyze.daily.metrics.humanCalling} value="52" />
-              <MetricCard label={t.analyze.daily.metrics.aiCalling} value="46" />
-              <MetricCard label={t.analyze.daily.metrics.messaging} value="30" />
+            <p className="mt-3 text-[13px] font-semibold text-[color:var(--gray-300)]">Today, May 10, 2026</p>
+
+            <Card className="mt-2.5 rounded-[24px] border border-[#d3d6dc] bg-white px-4 py-3.5 shadow-none">
+              <div className="grid grid-cols-[0.9fr_0.9fr_1fr] items-center gap-3.5">
+                <div className="pr-2">
+                  <p className="text-[14px] leading-none text-[#5b5d62]">Total Follow-ups</p>
+                  <p className="mt-2.5 text-[30px] font-bold leading-none text-[#0a3c90]">
+                    {dailyTotalFollowUps}
+                  </p>
+                  <p className="mt-3 flex items-center gap-1 text-[10px] font-semibold leading-none">
+                    <span className="text-[#2ebf63]">↗+12</span>
+                    <span className="text-[#343a45]">vs Yesterday</span>
+                  </p>
+                </div>
+                <div className="flex justify-center border-l border-[#d0d3d8] pl-3">
+                  <div
+                    className="relative h-[104px] w-[104px] rounded-full"
+                    style={{ background: donutBackground }}
+                    aria-label="Follow-up split"
+                  >
+                    <div className="absolute inset-[30px] rounded-full bg-white" />
+                    <span className="absolute right-[13px] top-[40px] text-[8.5px] font-bold leading-none text-white">
+                      41%
+                    </span>
+                    <span className="absolute bottom-[17px] left-[31px] text-[8.5px] font-bold leading-none text-white">
+                      36%
+                    </span>
+                    <span className="absolute left-[17px] top-[18px] text-[8.5px] font-bold leading-none text-white">
+                      23%
+                    </span>
+                  </div>
+                </div>
+                <div className="min-w-0 space-y-2.5 pl-0.5">
+                  {donutSegments.map((segment) => (
+                    <div key={segment.key} className="flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
+                      <span className="w-[46px] text-[10px] font-medium leading-none text-[#283244]">
+                        {segment.label}
+                      </span>
+                      <span className="flex-1 border-b border-dashed border-[#8f939a]" />
+                      <span className="w-[14px] text-left text-[10px] font-bold leading-none text-[#1f2636]">
+                        {segment.value}
+                      </span>
+                      <span className="w-[22px] text-left text-[10px] font-medium leading-none text-[#303a4b]">
+                        {Math.round((segment.value / dailyTotalFollowUps) * 100)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            <div className="mt-3 rounded-[24px] border border-[#d8dbe1] bg-white px-4 py-3.5">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#cbc7ef] text-[#565862]">
+                    <Link2 className="h-5 w-5" strokeWidth={2.2} />
+                  </span>
+                  <div>
+                    <p className="text-[12px] leading-none text-[#5b5d62]">Connect Rate</p>
+                    <p className="mt-1.5 text-[19px] font-bold leading-none text-[#0a3c90]">41%</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#efcc9f] text-[#565862]">
+                    <Smile className="h-5 w-5" strokeWidth={2.2} />
+                  </span>
+                  <div>
+                    <p className="text-[12px] leading-none text-[#5b5d62]">Interest Rate</p>
+                    <p className="mt-1.5 text-[19px] font-bold leading-none text-[#0a3c90]">69%</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#95dfbc] text-[#565862]">
+                    <CalendarDays className="h-5 w-5" strokeWidth={2.2} />
+                  </span>
+                  <div>
+                    <p className="text-[12px] leading-none text-[#5b5d62]">Bookings</p>
+                    <p className="mt-1.5 text-[19px] font-bold leading-none text-[#0a3c90]">3</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
-              <h2 className="text-[20px] font-bold leading-none text-[color:var(--gray-300)]">
-                {t.analyze.daily.callStatus}
-              </h2>
-              <div className="mt-3.5 space-y-2.5">
+            <Card className="mt-3 rounded-[20px] border-none bg-white px-3.5 py-3.5 shadow-none">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-[18px] font-bold leading-none text-[#1f2227]">
+                  Call Attempt Status
+                </h2>
+                <p className="text-[13px] font-semibold text-[#565a60]">
+                  Total Attempts: {dailyTotalFollowUps}
+                </p>
+              </div>
+              <div className="space-y-3">
                 {dailyStatusRows.map((item) => (
-                  <StatusRow
-                    key={item.key}
-                    label={t.analyze.daily.callStatuses[item.key]}
+                  <ProgressRow
+                    key={item.label}
+                    label={item.label}
                     value={item.value}
+                    total={dailyTotalFollowUps}
                     color={item.color}
                   />
                 ))}
               </div>
             </Card>
 
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
-              <h2 className="text-[20px] font-bold leading-none text-[color:var(--gray-300)]">
-                {t.analyze.daily.callDisposition}
-              </h2>
-              <div className="mt-3.5 space-y-2.5">
+            <Card className="mt-3 rounded-[20px] border-none bg-white px-3.5 py-3.5 shadow-none">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-[18px] font-bold leading-none text-[#1f2227]">
+                  Lead Outcomes
+                </h2>
+                <p className="text-[13px] font-semibold text-[#565a60]">
+                  Total Leads: {dailyTotalFollowUps}
+                </p>
+              </div>
+              <div className="space-y-3">
                 {dailyDispositionRows.map((item) => (
-                  <StatusRow
-                    key={item.key}
-                    label={t.analyze.daily.callDispositions[item.key]}
+                  <OutcomeRow
+                    key={item.label}
+                    label={item.label}
                     value={item.value}
+                    total={dailyTotalFollowUps}
                     color={item.color}
                   />
                 ))}
               </div>
             </Card>
 
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
-              <h2 className="text-[22px] text-[20px] font-bold leading-none text-[color:var(--gray-300)]">
+            <Card className="mt-3 rounded-[20px] border-none bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
+              <h2 className="text-[20px] font-bold leading-none text-[color:var(--gray-300)]">
                 {t.analyze.daily.nextSteps}
               </h2>
-              <div className="mt-3.5 space-y-0">
+              <div className="mt-2.5 space-y-0">
                 {t.analyze.daily.nextStepsItems.map((item) => {
                   const Icon = nextStepIconByKey[item.iconKey];
                   return (
                     <div
                       key={item.title}
-                      className="flex items-start gap-3 border-b border-[#eef1f5] py-3 first:pt-0 last:border-none last:pb-0"
+                      className="flex items-start gap-3 border-b border-[#eef1f5] py-3.5 first:pt-1 last:border-none last:pb-0"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#eef2ff] text-[color:var(--suzuki-blue)]">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0f4fd] text-[color:var(--suzuki-blue)]">
                         <Icon className="h-[17px] w-[17px]" strokeWidth={2.1} />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[17px] text-[15px] font-semibold leading-snug text-[color:var(--gray-300)]">
+                        <p className="text-[15px] font-semibold leading-snug text-[color:var(--gray-300)]">
                           {item.title}
                         </p>
-                        <p className="mt-0.5 text-[13px] leading-snug text-[color:var(--gray-200)]">{item.body}</p>
+                        <p className="mt-0.5 text-[12px] leading-snug text-[color:var(--gray-200)]">{item.body}</p>
                       </div>
                     </div>
                   );

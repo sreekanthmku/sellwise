@@ -203,6 +203,14 @@ export default function CallDetails() {
         if (typeof result.summary === "string" && result.summary.trim()) {
           setNotes(result.summary.trim());
         }
+
+        // Fire-and-forget: queue feedback generation once the user reaches details page.
+        try {
+          const feedbackUrl = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}/feedback`;
+          void fetch(feedbackUrl, { method: "POST" });
+        } catch {
+          // non-blocking
+        }
       } catch (err) {
         if (cancelled) return;
         toast.error(err?.message || "Failed to fetch call summary");
