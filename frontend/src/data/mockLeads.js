@@ -16,7 +16,7 @@ export const humanLeads = [
     name: "Mankiran",
     interestedIn: "Fronx",
     priority: "high",
-    tags: ["needCallback"],
+    tags: ["needCallback", "financeInterested"],
     lastContact: { value: 0, unit: "hours" },
     recommendedAction: "call",
     detail: {
@@ -268,7 +268,7 @@ export const humanLeads = [
     name: "Sreekanth",
     interestedIn: "e Vitara",
     priority: "high",
-    tags: ["testDriveDone", "financeInterested", "needCallback"],
+    tags: ["testDriveDone", "financeInterested"],
     lastContact: { value: 2, unit: "hours" },
     recommendedAction: "call",
     detail: {
@@ -461,7 +461,7 @@ export const humanLeads = [
     name: "Rina Wijaya",
     interestedIn: "Baleno",
     priority: "low",
-    tags: ["priceEnquiry"],
+    tags: ["priceEnquiry", "needCallback"],
     lastContact: { value: 3, unit: "days" },
     recommendedAction: "call",
     detail: {
@@ -767,7 +767,7 @@ export const aiLeads = [
     name: "Agus Hermawan",
     interestedIn: "Ertiga Hybrid",
     priority: "high",
-    tags: ["testDriveDone", "financeInterested", "needCallback"],
+    tags: ["testDriveDone", "financeInterested"],
     lastContact: { value: 2, unit: "hours" },
     recommendedAction: "call",
     detail: {
@@ -1078,7 +1078,7 @@ export const aiLeads = [
     name: "Indah Permatasari",
     interestedIn: "e Vitara",
     priority: "high",
-    tags: ["testDriveDone", "financeInterested", "needCallback"],
+    tags: ["testDriveDone", "financeInterested"],
     lastContact: { value: 3, unit: "hours" },
     recommendedAction: "call",
     detail: {
@@ -1204,7 +1204,7 @@ export const aiLeads = [
     name: "Melati Surya",
     interestedIn: "XL7 Hybrid",
     priority: "low",
-    tags: ["priceEnquiry"],
+    tags: ["priceEnquiry", "needCallback"],
     lastContact: { value: 8, unit: "hours" },
     recommendedAction: "call",
     detail: {

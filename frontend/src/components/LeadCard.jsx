@@ -14,6 +14,29 @@ const formatLastContact = (lastContact, t) => {
   return `${value} ${t.timeAgo.days}`;
 };
 
+/** Up to 2 unique tag keys; pad from pool so every card shows two pills when possible. */
+const FALLBACK_TAG_POOL = ["priceEnquiry", "needCallback", "financeInterested", "testDriveDone"];
+
+function buildDisplayTags(tags) {
+  const raw = Array.isArray(tags) ? tags.filter(Boolean) : [];
+  const seen = new Set();
+  const out = [];
+  for (const k of raw) {
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(k);
+    if (out.length >= 2) break;
+  }
+  for (const k of FALLBACK_TAG_POOL) {
+    if (out.length >= 2) break;
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push(k);
+    }
+  }
+  return out;
+}
+
 export const ActionCircle = ({ children, color, testid, onClick }) => (
   <button
     type="button"
@@ -43,14 +66,14 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
   const callIsRecommended = lead.recommendedAction === "call";
   const whatsappIsRecommended = lead.recommendedAction === "whatsapp";
   const actionOrder = ["call", "whatsapp"];
-  const displayTags = lead.tags.slice(0, 2);
+  const displayTags = buildDisplayTags(lead.tags);
 
   return (
     <article
       data-testid={`lead-card-${lead.id}`}
       className="overflow-hidden rounded-[20px] border border-[#ebebeb] bg-white"
     >
-      <div className="px-4 pt-4 pb-5">
+      <div className="min-w-0 px-4 pt-4 pb-3">
         {/* Top row: name + priority */}
         <div className="flex items-center justify-between gap-3">
           <button
@@ -70,23 +93,23 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
         </p>
 
         {/* Tags: max 2, single row; width follows content */}
-        <div className="mt-3 flex flex-nowrap items-center justify-start gap-2">
-          {displayTags.map((tagKey) => (
-            <div key={tagKey} className="inline-flex shrink-0">
+        <div className="mt-3 flex min-w-0 flex-nowrap items-center justify-start gap-2 overflow-x-auto overscroll-x-contain">
+          {displayTags.map((tagKey, index) => (
+            <div key={`${lead.id}-tag-${index}-${tagKey}`} className="inline-flex shrink-0">
               <StatusTag tagKey={tagKey} />
             </div>
           ))}
         </div>
 
         {/* Footer: last contact + action circles */}
-        <div className="mt-4 flex items-start justify-between gap-3">
-          <p className="mt-3 text-[13px] text-[color:var(--gray-200)]">
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="text-[13px] text-[color:var(--gray-200)]">
             {t.lastContact}:{" "}
             <span className="font-medium text-[color:var(--gray-300)]">
               {formatLastContact(lead.lastContact, t)}
             </span>
           </p>
-          <div className="flex items-start gap-5">
+          <div className="flex items-center gap-5">
             {actionOrder.map((action, index) => (
               <div
                 key={action}
