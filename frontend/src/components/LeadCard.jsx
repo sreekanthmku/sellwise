@@ -43,6 +43,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
   const callIsRecommended = lead.recommendedAction === "call";
   const whatsappIsRecommended = lead.recommendedAction === "whatsapp";
   const actionOrder = ["call", "whatsapp"];
+  const displayTags = lead.tags.slice(0, 2);
 
   return (
     <article
@@ -68,10 +69,17 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
           {t.interestedIn}: <span className="font-medium">{lead.interestedIn}</span>
         </p>
 
-        {/* Tags: fixed 3 columns per row; 1–2 tags stay narrow (no flex-grow into empty space) */}
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {lead.tags.map((tagKey) => (
-            <div key={tagKey} className="min-w-0">
+        {/* Tags: max 2, single row */}
+        <div className="mt-3 flex flex-nowrap items-center gap-2">
+          {displayTags.map((tagKey) => (
+            <div
+              key={tagKey}
+              className={
+                displayTags.length === 2
+                  ? "min-w-0 flex-1 basis-0"
+                  : "min-w-0 shrink-0"
+              }
+            >
               <StatusTag tagKey={tagKey} />
             </div>
           ))}
