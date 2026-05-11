@@ -17,15 +17,15 @@ export const BottomNav = () => {
   return (
     <nav
       data-testid="bottom-nav"
-      className="sticky bottom-0 left-0 right-0 z-40 mt-auto bg-[color:var(--suzuki-blue)] px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      className="sticky bottom-0 left-0 right-0 z-40 mt-auto bg-[color:var(--suzuki-blue)] px-3 pt-3 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
     >
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-4 gap-1">
         {navItems.map(({ key, path, icon: Icon, testid }) => {
           const active =
             pathname === path ||
             (key === "leadsTab" && pathname.startsWith("/leads"));
           return (
-            <li key={key} className="flex">
+            <li key={key} className="flex min-w-0 justify-center">
               <button
                 type="button"
                 data-testid={testid}
@@ -34,14 +34,22 @@ export const BottomNav = () => {
                   if (pathname === target) return;
                   navigate(target);
                 }}
-                className={`flex w-full flex-col items-center gap-1 py-1 transition-colors ${
-                  active
-                    ? "text-[color:var(--blue-500)]"
-                    : "text-white hover:text-[color:var(--blue-500)]"
+                className={`flex w-full max-w-[5.5rem] flex-col items-center justify-center transition-colors ${
+                  active ? "" : "text-[#b8d4f6] hover:text-[#d6e8fc]"
                 }`}
               >
-                <Icon className="h-5 w-5" strokeWidth={2.25} />
-                <span className="text-[12px] font-semibold">{t.nav[key]}</span>
+                <span
+                  className={`flex w-full flex-col items-center gap-1 ${
+                    active
+                      ? "rounded-[18px] bg-white px-3 py-2 text-[color:var(--suzuki-blue)]"
+                      : "py-2"
+                  }`}
+                >
+                  <Icon className="h-5 w-5 shrink-0" strokeWidth={active ? 2.5 : 2.25} />
+                  <span className={`text-[12px] leading-none ${active ? "font-bold" : "font-semibold"}`}>
+                    {t.nav[key]}
+                  </span>
+                </span>
               </button>
             </li>
           );
