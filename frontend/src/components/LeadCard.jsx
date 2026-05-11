@@ -101,7 +101,7 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
           ))}
         </div>
 
-        {/* Footer: last contact + action circles */}
+        {/* Footer: last contact + action circles (human tab only) */}
         <div className="mt-2 flex items-center justify-between gap-3">
           <p className="text-[13px] text-[color:var(--gray-200)]">
             {t.lastContact}:{" "}
@@ -109,54 +109,56 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
               {formatLastContact(lead.lastContact, t)}
             </span>
           </p>
-          <div className="flex items-center gap-5">
-            {actionOrder.map((action, index) => (
-              <div
-                key={action}
-                className={`relative flex flex-col items-center ${index === 1 ? "ml-[10px]" : ""}`}
-              >
-                {((action === "call" && callIsRecommended) ||
-                  (action === "whatsapp" && whatsappIsRecommended)) && (
-                  <span
-                    className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#fef3c7] text-[#f59e0b]"
-                    data-testid={`${action}-recommended-star-${lead.id}`}
-                    aria-hidden="true"
-                  >
-                    <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
-                  </span>
-                )}
-                {action === "call" ? (
-                  <ActionCircle
-                    color={
-                      callIsRecommended
-                        ? "border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
-                        : "border-[color:var(--blue-600)] bg-white text-[color:var(--blue-600)]"
-                    }
-                    testid={`call-btn-${lead.id}`}
-                    onClick={() => navigate(`/leads/${lead.id}/call`)}
-                  >
-                    <Phone
-                      className="h-5 w-5"
-                      strokeWidth={2.25}
-                      fill={callIsRecommended ? "currentColor" : "none"}
-                    />
-                  </ActionCircle>
-                ) : (
-                  <ActionCircle
-                    color={
-                      whatsappIsRecommended
-                        ? "border-[color:var(--success)] bg-[color:var(--success)] text-white"
-                        : "border-[#c6ebd4] bg-white text-[color:var(--success)]"
-                    }
-                    testid={`whatsapp-btn-${lead.id}`}
-                    onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}
-                  >
-                    <WhatsAppIcon size={22} />
-                  </ActionCircle>
-                )}
-              </div>
-            ))}
-          </div>
+          {variant !== "ai" && (
+            <div className="flex items-center gap-5">
+              {actionOrder.map((action, index) => (
+                <div
+                  key={action}
+                  className={`relative flex flex-col items-center ${index === 1 ? "ml-[10px]" : ""}`}
+                >
+                  {((action === "call" && callIsRecommended) ||
+                    (action === "whatsapp" && whatsappIsRecommended)) && (
+                    <span
+                      className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#fef3c7] text-[#f59e0b]"
+                      data-testid={`${action}-recommended-star-${lead.id}`}
+                      aria-hidden="true"
+                    >
+                      <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
+                    </span>
+                  )}
+                  {action === "call" ? (
+                    <ActionCircle
+                      color={
+                        callIsRecommended
+                          ? "border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
+                          : "border-[color:var(--blue-600)] bg-white text-[color:var(--blue-600)]"
+                      }
+                      testid={`call-btn-${lead.id}`}
+                      onClick={() => navigate(`/leads/${lead.id}/call`)}
+                    >
+                      <Phone
+                        className="h-5 w-5"
+                        strokeWidth={2.25}
+                        fill={callIsRecommended ? "currentColor" : "none"}
+                      />
+                    </ActionCircle>
+                  ) : (
+                    <ActionCircle
+                      color={
+                        whatsappIsRecommended
+                          ? "border-[color:var(--success)] bg-[color:var(--success)] text-white"
+                          : "border-[#c6ebd4] bg-white text-[color:var(--success)]"
+                      }
+                      testid={`whatsapp-btn-${lead.id}`}
+                      onClick={() => openWhatsAppChat(mergeLeadDetail(lead).phoneDisplay)}
+                    >
+                      <WhatsAppIcon size={22} />
+                    </ActionCircle>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
