@@ -1,16 +1,30 @@
+import { useState } from "react";
 import { User, Bot, Phone, Search, Filter } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { LeadCard } from "@/components/LeadCard";
 import { TabButton } from "@/components/leads/TabButton";
 import { ScheduleAiAccordion } from "@/components/leads/ScheduleAiAccordion";
+import { CallNumberModal } from "@/components/leads/CallNumberModal";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { useLeadsTab } from "@/hooks/useLeadsTab";
 
 export default function Leads() {
   const { t } = useLanguage();
-  const { moveAiLeadToHuman } = useLeadsData();
+  const { moveAiLeadToHuman, humanLeads } = useLeadsData();
   const { tab, switchTab, leads, humanLeadCount, aiLeadCount } = useLeadsTab();
+  const [callModalOpen, setCallModalOpen] = useState(false);
+  const [callModalLead, setCallModalLead] = useState(null);
+
+  const openCallModal = (lead) => {
+    setCallModalLead(lead ?? null);
+    setCallModalOpen(true);
+  };
+
+  const handleCallModalOpenChange = (nextOpen) => {
+    setCallModalOpen(nextOpen);
+    if (!nextOpen) setCallModalLead(null);
+  };
 
   return (
     <AppScreen
@@ -31,6 +45,7 @@ export default function Leads() {
             type="button"
             data-testid="leads-header-phone-btn"
             aria-label="Phone"
+            onClick={() => openCallModal(null)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e9ebef] bg-white text-[#6b7380] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
           >
             <Phone className="h-[18px] w-[18px]" fill="currentColor" strokeWidth={2.25} />
@@ -86,10 +101,18 @@ export default function Leads() {
               lead={lead}
               variant={tab === "ai" ? "ai" : "human"}
               onMoveToHuman={tab === "ai" ? moveAiLeadToHuman : undefined}
+              onCallClick={tab === "human" ? (l) => openCallModal(l) : undefined}
             />
           ))}
         </div>
       </div>
+
+      <CallNumberModal
+        open={callModalOpen}
+        onOpenChange={handleCallModalOpenChange}
+        initialLead={callModalLead}
+        humanLeads={humanLeads}
+      />
     </AppScreen>
   );
 }

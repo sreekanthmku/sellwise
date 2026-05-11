@@ -60,7 +60,7 @@ export const RecommendedPill = () => {
   );
 };
 
-export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
+export const LeadCard = ({ lead, variant = "human", onMoveToHuman, onCallClick }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const callIsRecommended = lead.recommendedAction === "call";
@@ -134,7 +134,9 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
                           : "border-[color:var(--blue-600)] bg-white text-[color:var(--blue-600)]"
                       }
                       testid={`call-btn-${lead.id}`}
-                      onClick={() => navigate(`/leads/${lead.id}/call`)}
+                      onClick={() =>
+                        onCallClick ? onCallClick(lead) : navigate(`/leads/${lead.id}/call`)
+                      }
                     >
                       <Phone
                         className="h-5 w-5"
