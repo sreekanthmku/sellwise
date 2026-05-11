@@ -1,29 +1,27 @@
 import { useLanguage } from "@/context/LanguageContext";
 
-const styles = {
-  high: {
-    bg: "bg-[color:var(--priority-high)]",
-    text: "text-white",
-  },
-  medium: {
-    bg: "bg-[color:var(--priority-medium)]",
-    text: "text-white",
-  },
-  low: {
-    bg: "bg-[color:var(--priority-low)]",
-    text: "text-white",
-  },
+const dotColor = {
+  high: "bg-[color:var(--priority-high)]",
+  medium: "bg-[color:var(--priority-medium)]",
+  low: "bg-[color:var(--priority-low)]",
+};
+
+const labelClass = {
+  high: "text-[color:var(--priority-high)]",
+  medium: "text-[#6b7280]",
+  low: "text-[#6b7280]",
 };
 
 export const PriorityBadge = ({ priority }) => {
   const { t } = useLanguage();
-  const s = styles[priority] || styles.low;
+  const key = priority === "high" || priority === "medium" || priority === "low" ? priority : "low";
   return (
     <span
       data-testid={`priority-${priority}`}
-      className={`inline-flex min-w-[72px] items-center justify-center rounded-full px-4 py-1 text-[13px] font-semibold ${s.bg} ${s.text}`}
+      className="inline-flex shrink-0 items-center gap-1.5"
     >
-      {t.priority[priority]}
+      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dotColor[key]}`} aria-hidden />
+      <span className={`text-[13px] font-normal leading-none ${labelClass[key]}`}>{t.priority[key]}</span>
     </span>
   );
 };
