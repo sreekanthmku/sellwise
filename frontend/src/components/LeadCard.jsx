@@ -1,4 +1,4 @@
-import { Phone, ArrowLeft, Sparkles } from "lucide-react";
+import { Phone, ArrowLeft, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { PriorityBadge } from "@/components/PriorityBadge";
@@ -94,11 +94,11 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman }) => {
                 {((action === "call" && callIsRecommended) ||
                   (action === "whatsapp" && whatsappIsRecommended)) && (
                   <span
-                    className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#FEF08A] text-[#CA8A04] shadow-sm"
-                    data-testid={`${action}-recommended-spark-${lead.id}`}
+                    className="absolute -right-1 -top-1 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#fef3c7] text-[#f59e0b]"
+                    data-testid={`${action}-recommended-star-${lead.id}`}
                     aria-hidden="true"
                   >
-                    <Sparkles className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
                   </span>
                 )}
                 {action === "call" ? (
