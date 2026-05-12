@@ -333,7 +333,7 @@ export default function CallFeedback() {
   const { t } = useLanguage();
   const { getLeadById } = useLeadsData();
 
-  const lead = getLeadById(leadId);
+  const lead = leadId ? getLeadById(leadId) : null;
 
   const passedAnalysisFromNav =
     location.state?.analysisResult != null && typeof location.state.analysisResult === "object"
@@ -483,7 +483,20 @@ export default function CallFeedback() {
     };
   }, [recordingOpen, callUuid]);
 
-  if (!lead) return <Navigate to="/leads" replace />;
+  if (leadId && !lead) {
+    return <Navigate to="/leads" replace />;
+  }
+
+  if (!callUuid || typeof callUuid !== "string") {
+    return (
+      <Navigate to={leadId ? `/leads/${leadId}` : "/perform"} replace />
+    );
+  }
+
+  const contactDisplayName =
+    (lead && typeof lead.name === "string" && lead.name.trim()) ||
+    (typeof location.state?.displayName === "string" && location.state.displayName.trim()) ||
+    "Unknown";
 
   const backState = {
     durationSeconds,
@@ -581,7 +594,9 @@ export default function CallFeedback() {
             type="button"
             data-testid="call-feedback-back"
             onClick={() =>
-              navigate(`/leads/${leadId}/call-details`, { state: backState })
+              leadId && lead
+                ? navigate(`/leads/${leadId}/call-details`, { state: backState })
+                : navigate("/perform")
             }
             className="flex items-center gap-1.5 py-2 font-body text-[15px] font-semibold text-[color:var(--blue-600)] transition-opacity hover:opacity-80"
           >
@@ -595,7 +610,7 @@ export default function CallFeedback() {
       <DetailCard className="mt-1 px-4 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <h2 className="font-body text-[13px] font-bold text-[#111827]">{f.pageHeading}</h2>
         <p className="mt-3 font-body text-[22px] font-bold leading-tight tracking-tight text-[#111827]">
-          {lead.name}
+          {contactDisplayName}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-[#6b7280]">
           <span className="font-medium text-[#4b5563]">{f.humanCall}</span>

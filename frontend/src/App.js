@@ -62,6 +62,7 @@ function App() {
                 <Route path="/leads/:leadId/call" element={<ActiveCall />} />
                 <Route path="/leads/:leadId" element={<LeadDetails />} />
                 <Route path="/leads" element={<Leads />} />
+                <Route path="/call-feedback" element={<CallFeedback />} />
                 <Route path="/perform" element={<Performance />} />
                 <Route path="/guide" element={<Guide />} />
                 <Route path="/analyze" element={<Analyze />} />

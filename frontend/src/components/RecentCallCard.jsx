@@ -76,8 +76,12 @@ export function RecentCallCard({
             </span>
             <button
               type="button"
+              disabled={!callUuid}
               onClick={onViewFeedback}
-              className="text-[13px] font-semibold leading-none text-[color:var(--blue-600)]"
+              className={cn(
+                "text-[13px] font-semibold leading-none text-[color:var(--blue-600)]",
+                !callUuid && "cursor-not-allowed opacity-45",
+              )}
             >
               {t.performance.viewFeedback}
             </button>

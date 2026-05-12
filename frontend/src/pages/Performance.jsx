@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { RecentCallCard } from "@/components/RecentCallCard";
@@ -27,10 +28,32 @@ function MetricBlock({ value, label, testId }) {
 
 export default function Performance() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { callHistory } = useVobiz();
 
-  const onViewFeedback = () => {
-    toast.message(t.callDetails.feedbackToast);
+  const openCallFeedback = (row) => {
+    const uuid = row.callUuid;
+    if (!uuid || typeof uuid !== "string") {
+      toast.message(t.callDetails.feedbackToast);
+      return;
+    }
+    const state = {
+      callUuid: uuid,
+      displayName: typeof row.name === "string" ? row.name : "Unknown",
+      durationSeconds:
+        typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+          ? Math.max(0, Math.floor(row.durationSeconds))
+          : undefined,
+      endedAt:
+        typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+          ? row.endedAtIso
+          : undefined,
+    };
+    if (row.leadId && String(row.leadId).length > 0) {
+      navigate(`/leads/${encodeURIComponent(String(row.leadId))}/call-feedback`, { state });
+      return;
+    }
+    navigate("/call-feedback", { state });
   };
 
   const liveRecentCalls = useMemo(() => {
@@ -52,6 +75,15 @@ export default function Performance() {
         avatarVariant: "purple",
         timeLabel,
         callUuid: row.callUuid || null,
+        leadId: row.leadId != null && String(row.leadId).length > 0 ? String(row.leadId) : null,
+        durationSeconds:
+          typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+            ? Math.max(0, Math.floor(row.durationSeconds))
+            : 0,
+        endedAtIso:
+          typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+            ? row.endedAtIso
+            : new Date().toISOString(),
       };
     });
   }, [callHistory, t.performance.today]);
@@ -149,7 +181,7 @@ export default function Performance() {
                 avatarVariant={row.avatarVariant}
                 timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
                 callUuid={row.callUuid}
-                onViewFeedback={onViewFeedback}
+                onViewFeedback={() => openCallFeedback(row)}
               />
             ))}
           </div>
