@@ -563,13 +563,19 @@ export function VobizProvider({ children }) {
               ? String(metaSnapshot.leadId)
               : null;
 
+          /** Outbound-only; inbound answered meta has no dialSeq (see `answer`). */
+          const outboundDialMetaSession =
+            metaSnapshot != null &&
+            metaSnapshot.dialSeq != null &&
+            typeof metaSnapshot.dialSeq === "number";
+
           pushLog(
             `📴 Call ended: ${callInfo?.reason || hangupSummary?.reason || "Terminated"}`,
             "warning"
           );
 
-          /** Outbound lead flow: navigate off ActiveCall even if the call never connected (cancel / fail before answer). */
-          if (wasActive || leadIdFromMeta) {
+          /** Lead flow + anonymous keypad outbound (dialer): emit session end even if never answered. */
+          if (wasActive || leadIdFromMeta || outboundDialMetaSession) {
             const endedDialSeqForSession =
               endedDialSeq != null ? endedDialSeq : metaSnapshot?.dialSeq ?? null;
             setLastCallSession({
@@ -673,7 +679,12 @@ export function VobizProvider({ children }) {
               failStr
             );
 
-          if (wasActive || leadIdFromMeta) {
+          const outboundDialMetaSessionFail =
+            metaSnapshot != null &&
+            metaSnapshot.dialSeq != null &&
+            typeof metaSnapshot.dialSeq === "number";
+
+          if (wasActive || leadIdFromMeta || outboundDialMetaSessionFail) {
             const endedDialSeqForSession =
               endedDialSeq != null ? endedDialSeq : metaSnapshot?.dialSeq ?? null;
             setLastCallSession({

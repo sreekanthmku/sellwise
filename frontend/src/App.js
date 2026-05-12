@@ -18,6 +18,7 @@ import { DocumentChrome } from "@/components/DocumentChrome";
 import Profile from "@/pages/Profile";
 import HeaderProfileNavigation from "@/components/HeaderProfileNavigation";
 import Analyze from "@/pages/Analyze";
+import DialerOutboundCall from "@/pages/DialerOutboundCall";
 import Dialer from "@/pages/Dialer";
 
 const SPLASH_VISIBLE_MS = 2000;
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/perform" element={<Performance />} />
                 <Route path="/guide" element={<Guide />} />
                 <Route path="/analyze" element={<Analyze />} />
+                <Route path="/dialer/call" element={<DialerOutboundCall />} />
                 <Route path="/dialer" element={<Dialer />} />
                 <Route path="/profile" element={<Profile />} />
               </Routes>

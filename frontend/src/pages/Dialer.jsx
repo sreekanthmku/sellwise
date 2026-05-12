@@ -6,6 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { CallNumberModal } from "@/components/leads/CallNumberModal";
 import { useLeadsData } from "@/context/LeadsDataContext";
+import { findHumanLeadBySanitizedDestination, formatDialDisplay } from "@/lib/phone";
 import { useVobiz, sanitizeDialString } from "@/vobiz/VobizProvider";
 import { cn } from "@/lib/utils";
 
@@ -18,18 +19,6 @@ const KEYPAD_ROWS = [
 ];
 
 const ZERO_LONG_PRESS_MS = 450;
-
-/** Groups digits for display; preserves leading + and trailing * / # */
-function formatDialDisplay(raw) {
-  if (!raw) return "";
-  const extras = raw.replace(/[\d+\s]/g, "");
-  const leadPlus = raw.startsWith("+");
-  const digitStr = (leadPlus ? raw.slice(1) : raw).replace(/\D/g, "");
-  const grouped = digitStr.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  const prefix = leadPlus ? "+" : "";
-  const tail = extras ? ` ${extras}` : "";
-  return `${prefix}${grouped}${tail}`.trim();
-}
 
 function hasVobizEnv() {
   const u = process.env.REACT_APP_VOBIZ_USERNAME;
@@ -49,7 +38,7 @@ export default function Dialer() {
   const location = useLocation();
   const { t } = useLanguage();
   const d = t.dialer;
-  const { placeOutboundCall, loginFromEnvIfConfigured, outboundPending, isInCall } = useVobiz();
+  const { loginFromEnvIfConfigured, outboundPending, isInCall } = useVobiz();
   const { humanLeads } = useLeadsData();
 
   const [callModalOpen, setCallModalOpen] = useState(false);
@@ -119,13 +108,12 @@ export default function Dialer() {
       return;
     }
     const dest = sanitizeDialString(entry);
-    placeOutboundCall({
-      destination: dest,
-      name: dest,
-      subtitle: "",
-      avatar: null,
-      leadId: null,
-    });
+    const match = findHumanLeadBySanitizedDestination(humanLeads, dest);
+    if (match) {
+      navigate(`/leads/${match.id}/call`, { state: { dialDestination: dest } });
+      return;
+    }
+    navigate("/dialer/call", { state: { destination: dest, dialRaw: entry.trim() } });
   };
 
   const displayText = entry.length > 0 ? formatDialDisplay(entry) : "";

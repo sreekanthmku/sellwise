@@ -8,6 +8,7 @@ const CHROME_CALL = "#003388";
 
 function chromeColorForPath(pathname) {
   if (/^\/leads\/[^/]+\/call$/.test(pathname)) return CHROME_CALL;
+  if (pathname === "/dialer/call") return CHROME_CALL;
   return CHROME_HEADER;
 }
 
