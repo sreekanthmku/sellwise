@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { LeadsDataProvider } from "@/context/LeadsDataContext";
@@ -20,8 +20,47 @@ import HeaderProfileNavigation from "@/components/HeaderProfileNavigation";
 import Analyze from "@/pages/Analyze";
 import DialerOutboundCall from "@/pages/DialerOutboundCall";
 import Dialer from "@/pages/Dialer";
+import { BackNavigationToLeads } from "@/components/BackNavigationToLeads";
 
 const SPLASH_VISIBLE_MS = 2000;
+
+/** Shell for all routes: chrome, VoIP, leads data, and `Outlet` for the page. */
+function AppShell() {
+  return (
+    <>
+      <BackNavigationToLeads />
+      <HeaderProfileNavigation />
+      <DocumentChrome />
+      <VobizProvider>
+        <CallShell />
+        <LeadsDataProvider>
+          <Outlet />
+        </LeadsDataProvider>
+      </VobizProvider>
+    </>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    element: <AppShell />,
+    children: [
+      { path: "/", element: <Welcome /> },
+      { path: "/leads/:leadId/call-feedback", element: <CallFeedback /> },
+      { path: "/leads/:leadId/call-details", element: <CallDetails /> },
+      { path: "/leads/:leadId/call", element: <ActiveCall /> },
+      { path: "/leads/:leadId", element: <LeadDetails /> },
+      { path: "/leads", element: <Leads /> },
+      { path: "/call-feedback", element: <CallFeedback /> },
+      { path: "/perform", element: <Performance /> },
+      { path: "/guide", element: <Guide /> },
+      { path: "/analyze", element: <Analyze /> },
+      { path: "/dialer/call", element: <DialerOutboundCall /> },
+      { path: "/dialer", element: <Dialer /> },
+      { path: "/profile", element: <Profile /> },
+    ],
+  },
+]);
 
 function App() {
   useEffect(() => {
@@ -49,30 +88,7 @@ function App() {
   return (
     <LanguageProvider>
       <div className="App">
-        <BrowserRouter>
-          <HeaderProfileNavigation />
-          <DocumentChrome />
-          <VobizProvider>
-            <CallShell />
-            <LeadsDataProvider>
-              <Routes>
-                <Route path="/" element={<Welcome />} />
-                <Route path="/leads/:leadId/call-feedback" element={<CallFeedback />} />
-                <Route path="/leads/:leadId/call-details" element={<CallDetails />} />
-                <Route path="/leads/:leadId/call" element={<ActiveCall />} />
-                <Route path="/leads/:leadId" element={<LeadDetails />} />
-                <Route path="/leads" element={<Leads />} />
-                <Route path="/call-feedback" element={<CallFeedback />} />
-                <Route path="/perform" element={<Performance />} />
-                <Route path="/guide" element={<Guide />} />
-                <Route path="/analyze" element={<Analyze />} />
-                <Route path="/dialer/call" element={<DialerOutboundCall />} />
-                <Route path="/dialer" element={<Dialer />} />
-                <Route path="/profile" element={<Profile />} />
-              </Routes>
-            </LeadsDataProvider>
-          </VobizProvider>
-        </BrowserRouter>
+        <RouterProvider router={router} />
         <Toaster
           position="bottom-center"
           offset={80}
