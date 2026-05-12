@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, ChevronRight, Volume2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronRight, Clipboard, Volume2, X } from "lucide-react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { defaultApiBase } from "@/vobiz/constants";
 
@@ -66,6 +73,137 @@ function formatOverallOutOf10(n) {
   return `${s}/10`;
 }
 
+function splitTranscriptLines(transcript) {
+  if (typeof transcript !== "string" || !transcript.trim()) return [];
+  return transcript
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => ({
+      id: `${index}-${line.slice(0, 24)}`,
+      time: line.match(/^\d{1,2}:\d{2}/)?.[0] ?? "",
+      text: line.replace(/^\d{1,2}:\d{2}\s*/, ""),
+      speaker: index % 2 === 0 ? "You" : "Customer",
+    }));
+}
+
+function CallRecordingDrawer({
+  open,
+  onOpenChange,
+  callUuid,
+  durationSeconds,
+  transcript,
+  transcriptLoading,
+  onAudioError,
+}) {
+  const recordingUrl =
+    callUuid && typeof callUuid === "string"
+      ? `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}/recording`
+      : "";
+  const transcriptRows = splitTranscriptLines(transcript);
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent
+        data-testid="call-recording-drawer"
+        className="mx-auto max-h-[90dvh] w-full max-w-[440px] overflow-hidden rounded-t-[24px] border border-[#e9ebef] bg-white px-5 pb-5 pt-0 shadow-xl"
+      >
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pt-4">
+          <div className="mt-1 flex items-center justify-between gap-4">
+            <DrawerTitle className="font-body text-[18px] font-bold leading-tight text-[color:var(--gray-300)]">
+              Call Recording
+            </DrawerTitle>
+            <DrawerDescription className="sr-only">
+              Play the saved recording and review the transcript for this call.
+            </DrawerDescription>
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Close call recording"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F8FB] text-[color:var(--gray-300)] transition-colors hover:bg-[#eef0f3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+              >
+                <X className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </DrawerClose>
+          </div>
+
+          <div className="mt-4 rounded-[12px] bg-[color:var(--blue-100)] px-3 py-3">
+            {recordingUrl ? (
+              <audio
+                controls
+                preload="metadata"
+                src={recordingUrl}
+                onError={onAudioError}
+                className="h-10 w-full accent-[color:var(--blue-600)]"
+                data-testid="call-recording-audio"
+              />
+            ) : (
+              <p className="font-body text-[13px] font-medium text-[color:var(--gray-200)]">
+                Recording is not available for this call.
+              </p>
+            )}
+            <p className="mt-2 text-right font-body text-[12px] font-semibold tabular-nums text-[color:var(--gray-200)]">
+              0:00 / {formatDurationShort(durationSeconds)}
+            </p>
+          </div>
+
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <h3 className="font-body text-[14px] font-bold text-[color:var(--gray-300)]">
+              Transcript
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                if (!transcript || !transcript.trim()) {
+                  toast.info("Transcript is not available yet.");
+                  return;
+                }
+                void navigator.clipboard
+                  ?.writeText(transcript)
+                  .then(() => toast.success("Transcript copied to notes."))
+                  .catch(() => toast.error("Could not copy transcript."));
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#d8dce4] bg-white px-3 py-1.5 font-body text-[12px] font-semibold text-[color:var(--blue-600)] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+            >
+              <Clipboard className="h-3.5 w-3.5" strokeWidth={2.25} />
+              Save notes
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-3">
+            {transcriptLoading ? (
+              <p className="rounded-[12px] bg-[#F7F8FB] px-4 py-4 font-body text-[13px] font-medium text-[color:var(--gray-200)]">
+                Loading transcript…
+              </p>
+            ) : transcriptRows.length > 0 ? (
+              transcriptRows.map((row, index) => (
+                <div
+                  key={row.id}
+                  className={`rounded-[12px] px-4 py-3 ${
+                    index % 2 === 0 ? "bg-[#F7F8FB]" : "bg-white"
+                  }`}
+                >
+                  <p className="font-body text-[12px] font-bold text-[color:var(--gray-300)]">
+                    {row.time ? `${row.time} ` : ""}
+                    {row.speaker}
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap font-body text-[13px] leading-snug text-[color:var(--gray-200)]">
+                    {row.text}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="rounded-[12px] bg-[#F7F8FB] px-4 py-4 font-body text-[13px] font-medium text-[color:var(--gray-200)]">
+                Transcript is not available yet.
+              </p>
+            )}
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
 export default function CallFeedback() {
   const { leadId } = useParams();
   const navigate = useNavigate();
@@ -85,6 +223,11 @@ export default function CallFeedback() {
   );
   const [analysisError, setAnalysisError] = useState("");
   const [analysisResult, setAnalysisResult] = useState(passedAnalysisFromNav);
+  const [recordingOpen, setRecordingOpen] = useState(false);
+  const [transcriptText, setTranscriptText] = useState("");
+  const [transcriptLoading, setTranscriptLoading] = useState(false);
+
+  const callUuid = location.state?.callUuid;
 
   const durationSeconds =
     typeof location.state?.durationSeconds === "number"
@@ -106,7 +249,6 @@ export default function CallFeedback() {
 
   useEffect(() => {
     const passed = location.state?.analysisResult;
-    const callUuid = location.state?.callUuid;
     if (!callUuid || typeof callUuid !== "string") {
       setAnalysisLoading(false);
       setAnalysisError("");
@@ -176,7 +318,44 @@ export default function CallFeedback() {
     return () => {
       cancelled = true;
     };
-  }, [location.state?.callUuid, location.state?.analysisResult]);
+  }, [callUuid, location.state?.analysisResult]);
+
+  useEffect(() => {
+    if (!recordingOpen || !callUuid || typeof callUuid !== "string") return;
+
+    let cancelled = false;
+    setTranscriptLoading(true);
+    const run = async () => {
+      const url = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}/transcript`;
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json().catch(() => null);
+          if (cancelled) return;
+          const transcript = typeof data?.transcript === "string" ? data.transcript : "";
+          if (res.ok && data?.ok && transcript.trim()) {
+            setTranscriptText(transcript);
+            setTranscriptLoading(false);
+            return;
+          }
+        } catch {
+          if (cancelled) return;
+        }
+        if (attempt < 11) {
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+        }
+      }
+      if (!cancelled) {
+        setTranscriptText("");
+        setTranscriptLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [recordingOpen, callUuid]);
 
   if (!lead) return <Navigate to="/leads" replace />;
 
@@ -327,7 +506,13 @@ export default function CallFeedback() {
           type="button"
           data-testid="call-feedback-recording"
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2563eb] py-3.5 font-body text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-95 active:opacity-90"
-          onClick={() => toast.info(f.recordingUnavailable)}
+          onClick={() => {
+            if (!callUuid || typeof callUuid !== "string") {
+              toast.info(f.recordingUnavailable);
+              return;
+            }
+            setRecordingOpen(true);
+          }}
         >
           <span>{f.callRecording}</span>
           <Volume2 className="h-5 w-5 shrink-0" strokeWidth={2.25} aria-hidden />
@@ -423,6 +608,15 @@ export default function CallFeedback() {
       </DetailCard>
         </div>
       </div>
+      <CallRecordingDrawer
+        open={recordingOpen}
+        onOpenChange={setRecordingOpen}
+        callUuid={typeof callUuid === "string" ? callUuid : ""}
+        durationSeconds={durationSeconds}
+        transcript={transcriptText}
+        transcriptLoading={transcriptLoading}
+        onAudioError={() => toast.error(f.recordingUnavailable)}
+      />
     </AppScreen>
   );
 }

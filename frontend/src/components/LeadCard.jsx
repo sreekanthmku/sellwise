@@ -1,4 +1,4 @@
-import { Phone, ArrowLeft, Star } from "lucide-react";
+import { Phone, Star, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { PriorityBadge } from "@/components/PriorityBadge";
@@ -60,13 +60,20 @@ export const RecommendedPill = () => {
   );
 };
 
-export const LeadCard = ({ lead, variant = "human", onMoveToHuman, onCallClick }) => {
+export const LeadCard = ({
+  lead,
+  variant = "human",
+  isSelected = false,
+  onSelectedChange,
+  onCallClick,
+}) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const callIsRecommended = lead.recommendedAction === "call";
   const whatsappIsRecommended = lead.recommendedAction === "whatsapp";
   const actionOrder = ["call", "whatsapp"];
   const displayTags = buildDisplayTags(lead.tags);
+  const showSelectionCheckbox = variant === "ai";
 
   return (
     <article
@@ -75,15 +82,35 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman, onCallClick }
     >
       <div className="min-w-0 px-4 pt-4 pb-3">
         {/* Top row: name + priority */}
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(`/leads/${lead.id}`)}
-            className="font-body text-left text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2"
-            data-testid={`lead-name-${lead.id}`}
-          >
-            {lead.name}
-          </button>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            {showSelectionCheckbox && (
+              <label className="mt-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center">
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${lead.name}`}
+                  data-testid={`lead-select-${lead.id}`}
+                  checked={isSelected}
+                  onChange={(e) => onSelectedChange?.(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <span
+                  className="flex h-[22px] w-[22px] items-center justify-center rounded-[2px] border-2 border-[#9CA3AF] bg-white transition-colors peer-checked:border-[color:var(--blue-600)] peer-checked:bg-[color:var(--blue-600)] peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--blue-400)] peer-focus-visible:ring-offset-2"
+                  aria-hidden="true"
+                >
+                  <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                </span>
+              </label>
+            )}
+            <button
+              type="button"
+              onClick={() => navigate(`/leads/${lead.id}`)}
+              className="min-w-0 font-body text-left text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2"
+              data-testid={`lead-name-${lead.id}`}
+            >
+              {lead.name}
+            </button>
+          </div>
           <PriorityBadge priority={lead.priority} />
         </div>
 
@@ -164,17 +191,6 @@ export const LeadCard = ({ lead, variant = "human", onMoveToHuman, onCallClick }
         </div>
       </div>
 
-      {variant === "ai" && (
-        <button
-          type="button"
-          data-testid={`move-to-human-${lead.id}`}
-          onClick={() => onMoveToHuman?.(lead.id)}
-          className="flex w-full items-center justify-center gap-2 bg-[color:var(--blue-200)] py-3 text-[14px] font-semibold text-[color:var(--blue-600)] transition-colors hover:bg-[color:var(--blue-300)]"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
-          {t.moveToHuman}
-        </button>
-      )}
     </article>
   );
 };
