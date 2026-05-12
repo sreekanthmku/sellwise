@@ -56,9 +56,36 @@
  */
 
 /**
+ * Details-only call analysis (Tasks 1–7 only).
+ * @typedef {object} CallDetailsResult
+ * @property {string} call_outcome
+ * @property {string} interest_level
+ * @property {string} customer_use_case
+ * @property {string} goods_type
+ * @property {string} customer_drivers
+ * @property {string} summary
+ * @property {NextActionItem[]} next_actions
+ * @property {string} next_action
+ */
+
+/**
  * @typedef {object} AnalyzeCallAudioInput
  * @property {string} audioPath
  * @property {Record<string, unknown>} [metadata]
+ * @property {'details' | 'feedback' | 'transcript'} [analysisKind]
+ */
+
+/**
+ * @typedef {object} CallTranscriptSegment
+ * @property {string} time
+ * @property {'agent' | 'customer'} speaker
+ * @property {string} text
+ */
+
+/**
+ * @typedef {object} CallTranscriptResult
+ * @property {string} transcript
+ * @property {CallTranscriptSegment[]} segments
  */
 
 export {};

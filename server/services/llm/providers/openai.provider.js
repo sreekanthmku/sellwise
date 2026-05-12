@@ -1,8 +1,19 @@
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import OpenAI from 'openai';
-import { buildCallAnalysisPrompt } from '../prompts/callAnalysisPrompt.js';
-import { extractJsonObject, validateCallAnalysisResult } from '../parseAnalysisJson.js';
+import {
+    buildCallAnalysisPrompt,
+    buildCallDetailsPrompt,
+    buildCallFeedbackPrompt,
+    buildCallTranscriptPrompt,
+} from '../prompts/callAnalysisPrompt.js';
+import {
+    extractJsonObject,
+    validateCallAnalysisResult,
+    validateCallDetailsResult,
+    validateCallFeedbackResult,
+    validateCallTranscriptResult,
+} from '../parseAnalysisJson.js';
 
 /**
  * OpenAI Chat Completions `input_audio.format` (file extension hint).
@@ -35,14 +46,21 @@ export function createOpenAIProvider(config) {
 
         /**
          * @param {import('../types.js').AnalyzeCallAudioInput} input
-         * @returns {Promise<import('../types.js').CallAnalysisResult>}
+         * @returns {Promise<import('../types.js').CallAnalysisResult | { suzuki_feedback: import('../types.js').SuzukiFeedback } | import('../types.js').CallTranscriptResult>}
          */
         async analyzeCallAudio(input) {
-            const { audioPath, metadata } = input;
+            const { audioPath, metadata, analysisKind } = input;
             const buf = await fsp.readFile(audioPath);
             const base64 = buf.toString('base64');
             const format = openAiInputAudioFormat(audioPath);
-            const prompt = buildCallAnalysisPrompt(metadata || {});
+            const prompt =
+                analysisKind === 'transcript'
+                    ? buildCallTranscriptPrompt(metadata || {})
+                    : analysisKind === 'feedback'
+                    ? buildCallFeedbackPrompt(metadata || {})
+                    : analysisKind === 'details'
+                      ? buildCallDetailsPrompt(metadata || {})
+                      : buildCallAnalysisPrompt(metadata || {});
 
             console.log(
                 `[openai] analyzeCallAudio start model=${modelName} audio=${audioPath} format=${format} audioBytes=${buf.length} base64Len=${base64.length} promptChars=${prompt.length}`
@@ -114,7 +132,14 @@ export function createOpenAIProvider(config) {
 
             let out;
             try {
-                out = validateCallAnalysisResult(parsed);
+                out =
+                    analysisKind === 'transcript'
+                        ? validateCallTranscriptResult(parsed)
+                        : analysisKind === 'feedback'
+                        ? validateCallFeedbackResult(parsed)
+                        : analysisKind === 'details'
+                          ? validateCallDetailsResult(parsed)
+                          : validateCallAnalysisResult(parsed);
             } catch (err) {
                 console.error('[openai] analysis shape validation failed:', err && err.message ? err.message : err);
                 console.error('[openai] raw LLM text (truncated):', String(text).slice(0, 4000));

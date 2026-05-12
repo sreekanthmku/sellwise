@@ -301,3 +301,121 @@ export function validateCallAnalysisResult(obj) {
         suzuki_feedback: normalizeSuzukiFeedback(o.suzuki_feedback),
     };
 }
+
+/**
+ * Details-only LLM output: normalize Tasks 1–7 and omit suzuki_feedback entirely.
+ * @param {unknown} obj
+ * @returns {import('./types.js').CallDetailsResult}
+ */
+export function validateCallDetailsResult(obj) {
+    if (!obj || typeof obj !== 'object') {
+        throw new Error('Details result is not an object');
+    }
+    const o = /** @type {Record<string, unknown>} */ (obj);
+
+    const outputFields = [
+        'call_outcome',
+        'interest_level',
+        'customer_use_case',
+        'goods_type',
+        'customer_drivers',
+        'summary',
+    ];
+
+    /** @type {Record<string, string>} */
+    const normalized = {};
+    for (const field of outputFields) {
+        normalized[field] = typeof o[field] === 'string' ? o[field] : '';
+    }
+
+    const legacyNextAction = typeof o.next_action === 'string' ? o.next_action : '';
+    const { next_actions, next_action } = normalizeNextActions(o.next_actions, legacyNextAction);
+
+    return {
+        call_outcome: normalized.call_outcome,
+        interest_level: normalized.interest_level,
+        customer_use_case: normalized.customer_use_case,
+        goods_type: normalized.goods_type,
+        customer_drivers: normalized.customer_drivers,
+        summary: normalized.summary,
+        next_actions,
+        next_action,
+    };
+}
+
+/**
+ * Feedback-only LLM output: normalize just the coaching block.
+ * @param {unknown} obj
+ * @returns {{ suzuki_feedback: import('./types.js').SuzukiFeedback }}
+ */
+export function validateCallFeedbackResult(obj) {
+    if (!obj || typeof obj !== 'object') {
+        throw new Error('Feedback result is not an object');
+    }
+    const o = /** @type {Record<string, unknown>} */ (obj);
+    return {
+        suzuki_feedback: normalizeSuzukiFeedback(o.suzuki_feedback),
+    };
+}
+
+/**
+ * @param {unknown} speaker
+ * @returns {'agent' | 'customer'}
+ */
+function normalizeTranscriptSpeaker(speaker) {
+    const s = asString(speaker).trim().toLowerCase();
+    if (s === 'customer') return 'customer';
+    return 'agent';
+}
+
+/**
+ * @param {unknown} raw
+ * @returns {import('./types.js').CallTranscriptSegment[]}
+ */
+function normalizeTranscriptSegments(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    for (const item of raw) {
+        if (!item || typeof item !== 'object') continue;
+        const row = /** @type {Record<string, unknown>} */ (item);
+        const text = asString(row.text).trim();
+        if (!text) continue;
+        out.push({
+            time: asString(row.time).trim(),
+            speaker: normalizeTranscriptSpeaker(row.speaker),
+            text,
+        });
+    }
+    return out;
+}
+
+/**
+ * @param {import('./types.js').CallTranscriptSegment[]} segments
+ */
+function transcriptTextFromSegments(segments) {
+    return segments
+        .map((segment) => {
+            const label = segment.speaker === 'customer' ? 'Customer' : 'Agent';
+            const time = segment.time ? `${segment.time} ` : '';
+            return `${time}${label}: ${segment.text}`;
+        })
+        .join('\n');
+}
+
+/**
+ * Transcript-only LLM output.
+ * @param {unknown} obj
+ * @returns {import('./types.js').CallTranscriptResult}
+ */
+export function validateCallTranscriptResult(obj) {
+    if (!obj || typeof obj !== 'object') {
+        throw new Error('Transcript result is not an object');
+    }
+    const o = /** @type {Record<string, unknown>} */ (obj);
+    const segments = normalizeTranscriptSegments(o.segments);
+    const transcript = asString(o.transcript).trim() || transcriptTextFromSegments(segments);
+    return {
+        transcript,
+        segments,
+    };
+}

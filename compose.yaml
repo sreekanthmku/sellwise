@@ -4,8 +4,9 @@ services:
       context: .
       dockerfile: server/Dockerfile
     platform: linux/amd64
-    # Override tag: SERVER_IMAGE_TAG=$(date +%Y%m%d-%H%M%S) docker compose build server && docker compose push server
-    image: sellwisecontainerregistry-c7a9hndedyhkdpg7.azurecr.io/sellwise-server:${SERVER_IMAGE_TAG:-suzuki-india}
+    # Timestamp tag example:
+    #   SERVER_IMAGE_TS=$(date +%Y%m%d-%H%M%S) docker compose build server && docker compose push server
+    image: sellwisecontainerregistry-c7a9hndedyhkdpg7.azurecr.io/sellwise-server:suzuki-india-${SERVER_IMAGE_TS:-local}
     env_file:
       - ./server/.env
     ports:

@@ -11,6 +11,7 @@ export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
  * @property {string} projectRoot
  * @property {number} port
  * @property {string} recordingsDir
+ * @property {string} callTranscriptsDir
  * @property {string} transcriptsFile
  * @property {string} callAnalysisDir
  * @property {string} sampleMp3
@@ -46,6 +47,7 @@ export function loadConfig() {
         projectRoot: PROJECT_ROOT,
         port,
         recordingsDir: path.join(PROJECT_ROOT, 'recordings'),
+        callTranscriptsDir: path.join(PROJECT_ROOT, 'call-transcripts'),
         transcriptsFile: path.join(PROJECT_ROOT, 'transcripts.json'),
         callAnalysisDir: path.join(PROJECT_ROOT, 'call-analysis'),
         sampleMp3: path.join(PROJECT_ROOT, 'sample.mp3'),
