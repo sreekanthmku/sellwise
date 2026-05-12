@@ -101,7 +101,6 @@ export default function Leads() {
               lead={lead}
               variant={tab === "ai" ? "ai" : "human"}
               onMoveToHuman={tab === "ai" ? moveAiLeadToHuman : undefined}
-              onCallClick={tab === "human" ? (l) => openCallModal(l) : undefined}
             />
           ))}
         </div>

@@ -1,36 +1,62 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  Building2,
+  CalendarCheck,
   CalendarDays,
-  CalendarRange,
   Link2,
   MessageCircleMore,
+  Phone,
   PhoneCall,
+  RefreshCw,
   Smile,
   UserRoundCheck,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { AppScreen } from "@/components/AppScreen";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
+import { cn } from "@/lib/utils";
 
-function MetricCard({ label, value }) {
+function MonthlySummaryMetricTile({ icon: Icon, iconWrapClassName, label, value }) {
   return (
-    <div className="rounded-[12px] border border-[#dbe2ef] bg-[#e9eef8] px-3 py-2.5">
-      <p className="text-[12px] leading-none text-[color:var(--gray-200)]">{label}</p>
-      <p className="mt-2 text-[32px] font-bold leading-none text-[color:var(--suzuki-blue)]">
-        {value}
-      </p>
+    <div className="flex min-h-0 gap-2.5 rounded-2xl border border-[#e8eaef] bg-white p-3 shadow-sm sm:gap-3 sm:p-3.5">
+      <span
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full sm:h-11 sm:w-11",
+          iconWrapClassName,
+        )}
+      >
+        <Icon className="h-[1.125rem] w-[1.125rem] text-white sm:h-5 sm:w-5" strokeWidth={2.1} />
+      </span>
+      <div className="min-w-0 flex-1 text-end">
+        <p className="text-xs font-medium leading-snug text-[color:var(--gray-200)] sm:text-sm">{label}</p>
+        <p className="mt-1 text-end text-lg font-bold tabular-nums leading-none text-[color:var(--suzuki-blue)] sm:text-xl md:text-2xl">
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
 
-function StatusRow({ label, value, color }) {
+function PipelineRow({ label, value, total, color }) {
+  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
-    <div className="flex items-center gap-2.5">
-      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-      <span className="w-[132px] text-[14px] leading-none text-[color:var(--gray-200)]">{label}</span>
-      <span className="flex-1 border-b border-dotted border-[#9ca3af]/70" />
-      <span className="w-8 text-left text-[14px] font-medium leading-none text-[color:var(--gray-300)]">
+    <div className="flex items-center gap-2 sm:gap-2.5">
+      <span className="h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5" style={{ backgroundColor: color }} />
+      <span className="min-w-0 max-w-[40%] shrink text-xs leading-tight text-[#61656b] sm:max-w-[44%] sm:text-sm">
+        {label}
+      </span>
+      <span className="min-w-[0.75rem] flex-1 border-b border-dashed border-[#8f939a]/85" />
+      <span className="shrink-0 text-left text-xs font-semibold tabular-nums leading-none text-[#1f2227] sm:text-sm">
         {value}
+      </span>
+      <span
+        className="w-8 shrink-0 text-left text-xs font-semibold tabular-nums leading-none sm:w-9 sm:text-sm"
+        style={{ color }}
+      >
+        {percentage}%
       </span>
     </div>
   );
@@ -71,13 +97,14 @@ function OutcomeRow({ label, value, total, color }) {
 }
 
 export default function Analyze() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("daily");
 
   const monthlyStatusRows = [
     { key: "new", value: 120, color: "#1d4ed8" },
-    { key: "contacted", value: 85, color: "#38bdf8" },
-    { key: "interested", value: 60, color: "#22c55e" },
+    { key: "contacted", value: 85, color: "#22c55e" },
+    { key: "interested", value: 60, color: "#f97316" },
     { key: "followUpRequired", value: 45, color: "#f59e0b" },
     { key: "testRideScheduled", value: 30, color: "#a855f7" },
     { key: "visitedShowroom", value: 20, color: "#6366f1" },
@@ -86,11 +113,13 @@ export default function Analyze() {
     { key: "lost", value: 12, color: "#ef4444" },
   ];
 
-  const bookingRows = [
-    { customer: "Amit Shah", vehicle: "e-Vitara", saleDate: "14 May", value: "₹17.9 L" },
-    { customer: "Priya Nair", vehicle: "Fronx", saleDate: "12 May", value: "₹13.7 L" },
-    { customer: "Rohit Mehta", vehicle: "XL 7 Hybrid", saleDate: "09 May", value: "₹15.50 L" },
-  ];
+  const monthlyLeadTotal = monthlyStatusRows.reduce((sum, row) => sum + row.value, 0);
+
+  const monthPeriodLabel = useMemo(() => {
+    const now = new Date();
+    const locale = lang === "ja" ? "ja-JP" : lang === "id" ? "id-ID" : "en-US";
+    return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(now);
+  }, [lang]);
 
   const dailyStatusRows = [
     { label: "Connected", value: 52, color: "#29b85a" },
@@ -135,6 +164,12 @@ export default function Analyze() {
     pushBrochureWhatsappInfo: MessageCircleMore,
   };
 
+  const monthlyNextActionIconByKey = {
+    followUpPending: RefreshCw,
+    scheduleTestRidesWarm: CalendarDays,
+    reengageShowroom: Building2,
+  };
+
   return (
     <AppScreen
       screenTestId="analyze-screen"
@@ -142,20 +177,20 @@ export default function Analyze() {
       mainBgClass="bg-[#F7F8FB]"
       showBottomNav
     >
-      <div className="pt-[16px] pb-0">
-        <h1 className="font-suzuki text-[18px] font-bold leading-none text-[color:var(--gray-300)]">
+      <div className="pt-4 pb-0">
+        <h1 className="font-suzuki text-lg font-bold leading-tight text-[color:var(--gray-300)] sm:text-xl">
           {t.analyze.title}
         </h1>
-        <p className="mt-2 text-[14px] leading-snug text-[color:var(--gray-200)]">{t.analyze.subtitle}</p>
+        <p className="mt-2 text-sm leading-snug text-[color:var(--gray-200)] sm:text-base">{t.analyze.subtitle}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-none pb-8 pt-4">
-        <div className="rounded-[16px] bg-[#edf0f5] p-1">
+        <div className="rounded-2xl bg-[#edf0f5] p-1">
           <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
             <button
               type="button"
               onClick={() => setActiveTab("daily")}
-              className={`rounded-[12px] px-3 py-2 text-[13px] font-semibold ${
+              className={`rounded-xl px-3 py-2 text-sm font-semibold sm:rounded-[12px] ${
                 activeTab === "daily"
                   ? "bg-[color:var(--blue-600)] text-white"
                   : "bg-[#f7f8fb] text-[color:var(--blue-500)]"
@@ -166,7 +201,7 @@ export default function Analyze() {
             <button
               type="button"
               onClick={() => setActiveTab("monthly")}
-              className={`rounded-[12px] px-3 py-2 text-[13px] font-semibold ${
+              className={`rounded-xl px-3 py-2 text-sm font-semibold sm:rounded-[12px] ${
                 activeTab === "monthly"
                   ? "bg-[color:var(--blue-600)] text-white"
                   : "bg-[#f7f8fb] text-[color:var(--blue-500)]"
@@ -176,93 +211,106 @@ export default function Analyze() {
             </button>
             <button
               type="button"
-              className="flex items-center justify-center rounded-[12px] bg-[#f7f8fb] text-[color:var(--gray-200)]"
+              className="flex aspect-square min-h-[2.5rem] w-10 shrink-0 items-center justify-center rounded-xl bg-[#f7f8fb] text-[color:var(--gray-200)] sm:rounded-[12px]"
               aria-label="Open date selector"
             >
-              <CalendarRange className="h-4 w-4" />
+              <CalendarDays className="h-4 w-4 sm:h-[1.125rem] sm:w-[1.125rem]" strokeWidth={2.25} />
             </button>
           </div>
         </div>
 
         {activeTab === "monthly" ? (
           <>
-            <div className="mt-3 grid grid-cols-2 gap-2.5">
-              <MetricCard label={t.analyze.metrics.leadsUnderProgress} value="397" />
-              <MetricCard label={t.analyze.metrics.contactsMade} value="277" />
-              <MetricCard label={t.analyze.metrics.bookingsDone} value="10" />
-              <MetricCard label={t.analyze.metrics.revenue} value="₹2498K" />
+            <p className="mt-3 text-sm font-semibold text-[color:var(--gray-300)] sm:text-base">
+              {monthPeriodLabel}
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:gap-3">
+              <MonthlySummaryMetricTile
+                icon={Users}
+                iconWrapClassName="bg-[#7c3aed]"
+                label={t.analyze.metrics.activeLeads}
+                value="397"
+              />
+              <MonthlySummaryMetricTile
+                icon={Phone}
+                iconWrapClassName="bg-[#ea580c]"
+                label={t.analyze.metrics.contactsMade}
+                value="277"
+              />
+              <MonthlySummaryMetricTile
+                icon={CalendarCheck}
+                iconWrapClassName="bg-[#16a34a]"
+                label={t.analyze.metrics.bookingsDone}
+                value="10"
+              />
+              <MonthlySummaryMetricTile
+                icon={Wallet}
+                iconWrapClassName="bg-[#1e40af]"
+                label={t.analyze.metrics.revenue}
+                value="249.8K"
+              />
             </div>
 
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
-              <h2 className="text-[20px] font-bold leading-none text-[color:var(--gray-300)]">
-                {t.analyze.leadStatus}
-              </h2>
-              <div className="mt-3.5 space-y-2.5">
+            <Card className="mt-3 rounded-2xl border border-[#e8eaef] bg-white px-3 py-3.5 shadow-sm sm:px-4 sm:py-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-base font-bold leading-tight text-[color:var(--gray-300)] sm:text-lg">
+                  {t.analyze.leadPipeline}
+                </h2>
+                <p className="text-sm font-semibold text-[color:var(--gray-200)] sm:text-base">
+                  {t.analyze.totalLeadsLabel}{" "}
+                  <span className="font-bold text-[color:var(--gray-300)]">{monthlyLeadTotal}</span>
+                </p>
+              </div>
+              <div className="mt-3 space-y-2.5 sm:space-y-3">
                 {monthlyStatusRows.map((item) => (
-                  <StatusRow
+                  <PipelineRow
                     key={item.key}
                     label={t.analyze.statuses[item.key]}
                     value={item.value}
+                    total={monthlyLeadTotal}
                     color={item.color}
                   />
                 ))}
               </div>
             </Card>
 
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white shadow-[var(--card-shadow)]">
-              <div className="flex items-center justify-between px-3.5 pb-2 pt-3.5">
-                <h2 className="text-[18px] font-bold leading-none text-[color:var(--gray-300)]">
-                  {t.analyze.bookingsDone}
-                </h2>
-                <button
-                  type="button"
-                  className="text-[12px] font-semibold leading-none text-[color:var(--blue-600)]"
-                >
-                  {t.analyze.viewAll}
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-0 text-left">
-                  <thead>
-                    <tr className="bg-[#dbe8f8] text-[12px] font-semibold text-[color:var(--gray-200)]">
-                      <th className="px-3.5 py-2">{t.analyze.table.customer}</th>
-                      <th className="px-2 py-2">{t.analyze.table.vehicle}</th>
-                      <th className="px-2 py-2">{t.analyze.table.saleDate}</th>
-                      <th className="px-3.5 py-2 text-left">{t.analyze.table.value}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookingRows.map((row) => (
-                      <tr
-                        key={`${row.customer}-${row.vehicle}`}
-                        className="text-[13px] text-[color:var(--gray-300)]"
-                      >
-                        <td className="border-b border-[#eef1f5] px-3.5 py-2.5">{row.customer}</td>
-                        <td className="border-b border-[#eef1f5] px-2 py-2.5">{row.vehicle}</td>
-                        <td className="border-b border-[#eef1f5] px-2 py-2.5">{row.saleDate}</td>
-                        <td className="border-b border-[#eef1f5] px-3.5 py-2.5 text-left">{row.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-
-            <Card className="mt-3 rounded-2xl border-[#e8eaef] bg-white px-3.5 py-3.5 shadow-[var(--card-shadow)]">
-              <h2 className="text-[18px] font-bold leading-none text-[color:var(--gray-300)]">
-                {t.analyze.keyInsights}
+            <Card className="mt-3 rounded-2xl border border-[#e8eaef] bg-white px-3 py-3.5 shadow-sm sm:px-4 sm:py-4">
+              <h2 className="text-base font-bold leading-tight text-[color:var(--gray-300)] sm:text-lg">
+                {t.analyze.nextBestActions}
               </h2>
-              <div className="mt-3 space-y-2.5">
-                {t.analyze.insights.map((item) => (
-                  <div key={item.title} className="border-b border-[#eef1f5] pb-2.5 last:border-none last:pb-0">
-                    <p className="text-[14px] font-semibold leading-snug text-[color:var(--gray-300)]">
-                      <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-[#f59e0b]" />
-                      {item.title}
-                    </p>
-                    <p className="mt-1 text-[13px] leading-snug text-[color:var(--gray-200)]">{item.body}</p>
-                  </div>
-                ))}
+              <div className="mt-1 divide-y divide-[#eef1f5]">
+                {t.analyze.nextBestActionsItems.map((item) => {
+                  const Icon = monthlyNextActionIconByKey[item.iconKey];
+                  return (
+                    <div
+                      key={item.title}
+                      className="flex items-start gap-3 py-3.5 first:pt-3 sm:gap-4 sm:py-4"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e8f0fe] text-[color:var(--blue-600)] sm:h-11 sm:w-11">
+                        {Icon ? (
+                          <Icon className="h-4 w-4 sm:h-[1.125rem] sm:w-[1.125rem]" strokeWidth={2.1} />
+                        ) : null}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold leading-snug text-[color:var(--gray-300)] sm:text-[15px]">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-xs leading-snug text-[color:var(--gray-200)] sm:text-sm">
+                          <span className="font-bold text-[color:var(--gray-300)]">{item.highlight}</span>
+                          {item.bodyAfter}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/leads")}
+                        className="shrink-0 rounded-full border border-[color:var(--blue-600)] bg-white px-3 py-1.5 text-xs font-semibold text-[color:var(--blue-600)] transition-colors hover:bg-[#f8fafc] sm:px-3.5 sm:py-2 sm:text-sm"
+                      >
+                        {t.analyze.viewLeads}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           </>

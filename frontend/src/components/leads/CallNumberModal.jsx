@@ -1,13 +1,11 @@
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Phone, Bell, Check, ChevronDown, X } from "lucide-react";
+import { Phone, Bell, Check, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
+  DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogPortal,
-  DialogOverlay,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -157,21 +155,19 @@ export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPortal>
-        <DialogOverlay />
-        <DialogPrimitive.Content
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 outline-none",
-            "border-0 bg-transparent p-0 shadow-none",
-            "data-[state=open]:[&_.call-number-sheet]:animate-in data-[state=closed]:[&_.call-number-sheet]:animate-out",
-            "data-[state=closed]:[&_.call-number-sheet]:fade-out-0 data-[state=open]:[&_.call-number-sheet]:fade-in-0",
-            "data-[state=open]:[&_.call-number-sheet]:slide-in-from-bottom-[35vh] data-[state=closed]:[&_.call-number-sheet]:slide-out-to-bottom-[35vh]",
-            "data-[state=open]:[&_.call-number-sheet]:zoom-in-100 data-[state=closed]:[&_.call-number-sheet]:zoom-out-100",
-          )}
-        >
+      <DialogContent
+        className={cn(
+          "fixed inset-x-0 bottom-0 left-0 top-auto z-50 flex max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col justify-center gap-0 border-0 bg-transparent p-0 px-3 pb-0 pt-0 shadow-none outline-none duration-300 sm:rounded-none",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=open]:[&_.call-number-sheet]:animate-in data-[state=closed]:[&_.call-number-sheet]:animate-out",
+          "data-[state=closed]:[&_.call-number-sheet]:fade-out-0 data-[state=open]:[&_.call-number-sheet]:fade-in-0",
+          "data-[state=open]:[&_.call-number-sheet]:slide-in-from-bottom-[35vh] data-[state=closed]:[&_.call-number-sheet]:slide-out-to-bottom-[35vh]",
+          "data-[state=open]:[&_.call-number-sheet]:zoom-in-100 data-[state=closed]:[&_.call-number-sheet]:zoom-out-100",
+        )}
+      >
           <div
             className={cn(
-              "call-number-sheet relative flex max-h-[min(90vh,640px)] w-full max-w-[440px] flex-col overflow-hidden rounded-b-none rounded-t-[24px] border border-[#e9ebef] border-b-0 bg-white shadow-xl outline-none duration-300",
+              "call-number-sheet relative mx-auto flex max-h-[min(90vh,640px)] w-full max-w-[440px] flex-col overflow-hidden rounded-b-none rounded-t-[24px] border border-[#e9ebef] border-b-0 bg-white shadow-xl outline-none duration-300",
             )}
           >
             <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-5 pb-5 pt-4">
@@ -371,17 +367,8 @@ export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads })
             </button>
           </div>
             </div>
-            <DialogPrimitive.Close
-              type="button"
-              className="absolute right-4 top-4 z-[1] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4 text-[color:var(--gray-300)]" />
-              <span className="sr-only">Close</span>
-            </DialogPrimitive.Close>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPortal>
+      </DialogContent>
     </Dialog>
   );
 }

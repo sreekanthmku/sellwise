@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronRight, Clock } from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronRight, Volume2 } from "lucide-react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
@@ -14,6 +14,24 @@ const DetailCard = ({ children, className = "" }) => (
     {children}
   </section>
 );
+
+const CALL_OUTCOME_LABELS = {
+  interested: "Interested",
+  callback_requested: "Callback Requested",
+  dealership_visit_planned: "Dealership Visit Planned",
+  not_interested: "Not Interested",
+  wrong_number: "Wrong Number",
+  busy: "Busy",
+  test_drive_requested: "Test Drive Requested",
+};
+
+function toHumanReadableOutcome(value) {
+  if (typeof value !== "string") return "";
+  if (CALL_OUTCOME_LABELS[value]) return CALL_OUTCOME_LABELS[value];
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 function formatDurationShort(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -174,6 +192,13 @@ export default function CallFeedback() {
   const overallFormatted = hasSuzukiFeedback ? formatOverallOutOf10(sf.overall_score) : null;
   const overallDisplay = overallFormatted != null ? overallFormatted : na;
 
+  const dispositionRaw =
+    typeof analysisResult?.call_outcome === "string" ? analysisResult.call_outcome.trim() : "";
+  const dispositionSlug = dispositionRaw.length > 0 ? dispositionRaw.toLowerCase().replace(/\s+/g, "_") : "";
+  const dispositionLabel =
+    dispositionSlug.length > 0 ? toHumanReadableOutcome(dispositionSlug).trim() : "";
+  const dispositionDisplay = dispositionLabel.length > 0 ? dispositionLabel : na;
+
   const didWellItems =
     hasSuzukiFeedback && Array.isArray(sf.what_you_did_well) && sf.what_you_did_well.length > 0
       ? sf.what_you_did_well
@@ -261,36 +286,53 @@ export default function CallFeedback() {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-none pb-10">
-      {/* Call info */}
-      <DetailCard className="mt-1">
+      {/* Call feedback — summary tile */}
+      <DetailCard className="mt-1 px-4 py-5 shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <h2 className="font-body text-[13px] font-bold text-[#111827]">{f.pageHeading}</h2>
-        <div className="mt-3 flex items-start justify-between gap-2">
-          <p className="font-body text-[20px] font-bold leading-tight text-[#111827]">{lead.name}</p>
-          <span className="shrink-0 text-[14px] font-semibold text-[#15803D]">
-            {t.callDetails.wrapupStatus}
+        <p className="mt-3 font-body text-[22px] font-bold leading-tight tracking-tight text-[#111827]">
+          {lead.name}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-[#6b7280]">
+          <span className="font-medium text-[#4b5563]">{f.humanCall}</span>
+          <span className="hidden text-[#d1d5db] sm:inline" aria-hidden>
+            ·
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="h-4 w-4 shrink-0 text-[#9ca3af]" strokeWidth={2} />
+            <span>{formatEndedAtLabel(endedAt, t)}</span>
           </span>
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px] text-[#6B7280]">
-          <span>{formatEndedAtLabel(endedAt, t)}</span>
-          <span className="flex items-center gap-1.5 tabular-nums">
-            <Clock className="h-4 w-4 shrink-0 text-[color:var(--blue-600)]" strokeWidth={2} />
-            {formatDurationShort(durationSeconds)}
-          </span>
+        <div className="my-4 h-px bg-[#e5e7eb]" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="min-w-0 text-center">
+            <p className="font-body text-[13px] font-normal leading-tight text-[#111827]">{f.disposition}</p>
+            <p className="mt-2 truncate font-body text-[15px] font-bold leading-tight text-[#1d4ed8]">
+              {dispositionDisplay}
+            </p>
+          </div>
+          <div className="min-w-0 text-center">
+            <p className="font-body text-[13px] font-normal leading-tight text-[#111827]">{f.duration}</p>
+            <p className="mt-2 font-body text-[15px] font-bold tabular-nums leading-tight text-[#1d4ed8]">
+              {formatDurationShort(durationSeconds)}
+            </p>
+          </div>
+          <div className="min-w-0 text-center">
+            <p className="font-body text-[13px] font-normal leading-tight text-[#111827]">{f.overallScore}</p>
+            <p className="mt-2 font-body text-[15px] font-bold tabular-nums leading-tight text-[#1d4ed8]">
+              {overallDisplay}
+            </p>
+          </div>
         </div>
+        <button
+          type="button"
+          data-testid="call-feedback-recording"
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2563eb] py-3.5 font-body text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-95 active:opacity-90"
+          onClick={() => toast.info(f.recordingUnavailable)}
+        >
+          <span>{f.callRecording}</span>
+          <Volume2 className="h-5 w-5 shrink-0" strokeWidth={2.25} aria-hidden />
+        </button>
       </DetailCard>
-
-      {/* Overall score */}
-      <section className="mt-4 rounded-2xl border border-[#dbe4f7] bg-[#eef3fc] px-4 py-4">
-        <h3 className="font-body text-[15px] font-bold text-[#111827]">{f.overallScore}</h3>
-        <div className="mt-2 flex flex-wrap items-baseline gap-2">
-          <span className="font-body text-[28px] font-bold leading-none text-[#111827]">
-            {overallDisplay}
-          </span>
-          {overallFormatted != null ? (
-            <span className="font-body text-[13px] text-[#6B7280]">{f.scoreTrend}</span>
-          ) : null}
-        </div>
-      </section>
 
       {/* Detailed feedback */}
       <DetailCard className="mt-4">
