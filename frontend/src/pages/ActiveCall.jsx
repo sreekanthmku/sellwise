@@ -123,6 +123,12 @@ export default function ActiveCall() {
     let cancelled = false;
     const navTimer = window.setTimeout(() => {
       if (cancelled) return;
+      if (!lastCallSession.wasConnected) {
+        navigate(`/leads/${leadId}`, { replace: true });
+        clearLastCallSession();
+        setPreNavigateKind(null);
+        return;
+      }
       navigate(`/leads/${leadId}/call-details`, {
         replace: true,
         state: {

@@ -147,7 +147,7 @@ export function VobizProvider({ children }) {
   const [eventLog, setEventLog] = useState([]);
   const [callHistory, setCallHistory] = useState(() => readInitialCallHistory());
 
-  /** Set after a connected call ends (terminate/fail); cleared on new dial/login. Optional leadId ties session to outbound lead flow. */
+  /** Set after a call ends (terminate/fail); cleared on new dial/login. `wasConnected` is false when the remote leg never reached active/media (ring-no-answer, busy, etc.). */
   const [lastCallSession, setLastCallSession] = useState(null);
 
   const clearLastCallSession = useCallback(() => {
@@ -585,6 +585,7 @@ export function VobizProvider({ children }) {
               leadId: leadIdFromMeta,
               endedDialSeq: endedDialSeqForSession,
               endReason: "ended",
+              wasConnected: wasActive,
             });
             appendCallHistory({
               id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -694,6 +695,7 @@ export function VobizProvider({ children }) {
               leadId: leadIdFromMeta,
               endedDialSeq: endedDialSeqForSession,
               endReason: remoteBusy ? "busy" : "failed",
+              wasConnected: wasActive,
             });
             appendCallHistory({
               id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -924,6 +926,11 @@ export function VobizProvider({ children }) {
         ? String(metaSnapshot.leadId)
         : null;
     const seqAtSchedule = outboundDialSeqRef.current;
+    const wasConnectedAtHangup =
+      hadAnsweredCallRef.current ||
+      isInCallRef.current ||
+      audioAttachedRef.current ||
+      callStartedAtRef.current != null;
 
     const vobiz = vobizRef.current;
     if (vobiz) {
@@ -951,6 +958,7 @@ export function VobizProvider({ children }) {
             leadId: leadIdExit,
             endedDialSeq: seqAtSchedule,
             endReason: "ended",
+            wasConnected: wasConnectedAtHangup,
           };
         });
       }, 500);
