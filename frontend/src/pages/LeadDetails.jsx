@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Binoculars,
   Calendar,
   Car,
@@ -72,18 +71,6 @@ export default function LeadDetails() {
       mainBgClass="bg-[#F7F8FB]"
       showBottomNav
     >
-      <div className="pt-1">
-        <button
-          type="button"
-          data-testid="lead-detail-back"
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 py-2 font-body text-[15px] font-semibold text-[color:var(--blue-600)] transition-opacity hover:opacity-80"
-        >
-          <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
-          {t.leadDetail.back}
-        </button>
-      </div>
-
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-none pb-8">
       {/* Profile + Brief Persona (single card) */}
       <DetailCard className="mt-1 px-4 py-4 sm:px-5 sm:py-5">

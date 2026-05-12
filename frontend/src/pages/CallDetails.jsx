@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  ArrowLeft,
   CheckCircle2,
   Clock,
   Loader2,
@@ -265,18 +264,6 @@ export default function CallDetails() {
             paddingBottom: "var(--sellwise-call-details-scroll-pad-bottom)",
           }}
         >
-          <div className="pt-1">
-            <button
-              type="button"
-              data-testid="call-details-back"
-              onClick={() => navigate(`/leads/${leadId}`)}
-              className="flex items-center gap-1.5 py-2 font-body text-[15px] font-semibold text-[color:var(--blue-600)] transition-opacity hover:opacity-80"
-            >
-              <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
-              {t.leadDetail.back}
-            </button>
-          </div>
-
           {/* Call summary */}
           <DetailCard className="mt-1">
             <h2 className="font-body text-[16px] font-bold text-[#111827]">
