@@ -169,6 +169,23 @@ export const translations = {
       analyze: "Analyze",
     },
 
+    dialer: {
+      title: "Dialer",
+      hint: "Enter a phone number",
+      call: "Call",
+      clear: "Clear",
+      backAria: "Go back",
+      plusAria: "Add international prefix",
+      addContactAria: "New contact",
+      backspaceAria: "Delete last digit",
+      statusConnecting: "Connecting…",
+      statusReady: "Ready",
+      statusOffline: "SIP not configured",
+      callNeedsDigits: "Enter a number to call",
+      noSipToast:
+        "Add REACT_APP_VOBIZ_USERNAME and REACT_APP_VOBIZ_PASSWORD to .env to place calls.",
+    },
+
     guide: {
       title: "Guide",
       suggestedLabel: "Suggested questions:",
@@ -615,6 +632,23 @@ export const translations = {
       analyze: "Analisa",
     },
 
+    dialer: {
+      title: "Dialer",
+      hint: "Masukkan nomor telepon",
+      call: "Panggil",
+      clear: "Hapus",
+      backAria: "Kembali",
+      plusAria: "Tambahkan awalan internasional",
+      addContactAria: "Kontak baru",
+      backspaceAria: "Hapus digit terakhir",
+      statusConnecting: "Menghubungkan…",
+      statusReady: "Siap",
+      statusOffline: "SIP belum diatur",
+      callNeedsDigits: "Masukkan nomor untuk menelepon",
+      noSipToast:
+        "Tambahkan REACT_APP_VOBIZ_USERNAME dan REACT_APP_VOBIZ_PASSWORD di .env untuk menelepon.",
+    },
+
     guide: {
       title: "Panduan",
       suggestedLabel: "Pertanyaan yang disarankan:",
@@ -1059,6 +1093,23 @@ export const translations = {
       perform: "実施",
       guide: "ガイド",
       analyze: "分析",
+    },
+
+    dialer: {
+      title: "ダイヤラー",
+      hint: "電話番号を入力",
+      call: "発信",
+      clear: "クリア",
+      backAria: "戻る",
+      plusAria: "国際プレフィックスを追加",
+      addContactAria: "新規連絡先",
+      backspaceAria: "最後の桁を削除",
+      statusConnecting: "接続中…",
+      statusReady: "準備完了",
+      statusOffline: "SIP 未設定",
+      callNeedsDigits: "番号を入力してから発信してください",
+      noSipToast:
+        "発信するには .env に REACT_APP_VOBIZ_USERNAME と REACT_APP_VOBIZ_PASSWORD を追加してください。",
     },
 
     guide: {

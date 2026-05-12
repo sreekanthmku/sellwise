@@ -30,8 +30,27 @@ module.exports = function setupProxy(app) {
       pathOnly === "/perform" ||
       pathOnly.startsWith("/perform/") ||
       pathOnly === "/guide" ||
-      pathOnly.startsWith("/guide/");
+      pathOnly.startsWith("/guide/") ||
+      pathOnly === "/analyze" ||
+      pathOnly.startsWith("/analyze/") ||
+      pathOnly === "/profile" ||
+      pathOnly.startsWith("/profile/") ||
+      pathOnly === "/dialer" ||
+      pathOnly.startsWith("/dialer/");
     if (absorbNimbusPost) {
+      res.status(200).type("application/json").send("{}");
+      return;
+    }
+    /**
+     * Dev-only catch-all: same Vobiz behavior on any SPA route not listed above (or after
+     * new routes are added). Exclude webpack-dev-server endpoints.
+     */
+    if (
+      process.env.NODE_ENV === "development" &&
+      !pathOnly.startsWith("/sockjs-node") &&
+      !pathOnly.startsWith("/webpack-dev-server") &&
+      !pathOnly.startsWith("/__webpack")
+    ) {
       res.status(200).type("application/json").send("{}");
       return;
     }

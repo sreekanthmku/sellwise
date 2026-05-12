@@ -1,12 +1,12 @@
 import * as React from "react";
-import { Phone, Bell, Check, ChevronDown } from "lucide-react";
+import { Phone, Bell, Check, ChevronDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
@@ -73,7 +73,7 @@ function getAttachLeadRows(humanLeads, initialLead) {
   }));
 }
 
-export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads }) {
+export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads, prefillPhoneDisplay }) {
   const { t } = useLanguage();
   const m = t.callNumberModal;
   const navigate = useNavigate();
@@ -107,13 +107,21 @@ export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads })
     } else {
       const first = humanLeads?.[0];
       setAttachedLeadId(first?.id ?? "");
-      setDialMeta({ flag: "🇮🇳", dial: "+91" });
-      setNationalDigits("");
+      const rawPrefill =
+        typeof prefillPhoneDisplay === "string" ? prefillPhoneDisplay.trim() : "";
+      if (rawPrefill) {
+        const parsed = parsePhoneDisplay(rawPrefill);
+        setDialMeta({ flag: parsed.flag, dial: parsed.dial });
+        setNationalDigits(parsed.national);
+      } else {
+        setDialMeta({ flag: "🇮🇳", dial: "+91" });
+        setNationalDigits("");
+      }
     }
     setSaveAs("alternate");
     setWhatsappOn(true);
     setAttachOpen(false);
-  }, [open, initialLead, applyPhoneFromLead, humanLeads]);
+  }, [open, initialLead, applyPhoneFromLead, humanLeads, prefillPhoneDisplay]);
 
   React.useLayoutEffect(() => {
     if (!attachOpen || !attachTriggerRef.current) return;
@@ -154,28 +162,28 @@ export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads })
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent
+        data-testid="call-number-drawer"
         className={cn(
-          "fixed inset-x-0 bottom-0 left-0 top-auto z-50 flex max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 flex-col justify-center gap-0 border-0 bg-transparent p-0 px-3 pb-0 pt-0 shadow-none outline-none duration-300 sm:rounded-none",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-          "data-[state=open]:[&_.call-number-sheet]:animate-in data-[state=closed]:[&_.call-number-sheet]:animate-out",
-          "data-[state=closed]:[&_.call-number-sheet]:fade-out-0 data-[state=open]:[&_.call-number-sheet]:fade-in-0",
-          "data-[state=open]:[&_.call-number-sheet]:slide-in-from-bottom-[35vh] data-[state=closed]:[&_.call-number-sheet]:slide-out-to-bottom-[35vh]",
-          "data-[state=open]:[&_.call-number-sheet]:zoom-in-100 data-[state=closed]:[&_.call-number-sheet]:zoom-out-100",
+          "max-h-[min(90vh,100dvh)] w-full max-w-none gap-0 overflow-hidden rounded-t-[24px] border border-[#e9ebef] bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-0 shadow-xl",
         )}
       >
-          <div
-            className={cn(
-              "call-number-sheet relative mx-auto flex max-h-[min(90vh,640px)] w-full max-w-[440px] flex-col overflow-hidden rounded-b-none rounded-t-[24px] border border-[#e9ebef] border-b-0 bg-white shadow-xl outline-none duration-300",
-            )}
-          >
-            <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-5 pb-5 pt-4">
-            <DialogHeader className="space-y-0 pr-10 text-left">
-              <DialogTitle className="font-body text-[18px] font-bold leading-tight text-[color:var(--gray-300)]">
-                {m.title}
-              </DialogTitle>
-            </DialogHeader>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pt-4">
+          <div className="flex items-start justify-between gap-4">
+            <DrawerTitle className="font-body text-[18px] font-bold leading-tight text-[color:var(--gray-300)]">
+              {m.title}
+            </DrawerTitle>
+            <DrawerClose asChild>
+              <button
+                type="button"
+                aria-label="Close"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F7F8FB] text-[color:var(--gray-300)] transition-colors hover:bg-[#eef0f3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+              >
+                <X className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </DrawerClose>
+          </div>
 
           <div className="mt-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
@@ -366,9 +374,8 @@ export function CallNumberModal({ open, onOpenChange, initialLead, humanLeads })
               {m.callAndSave}
             </button>
           </div>
-            </div>
-          </div>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

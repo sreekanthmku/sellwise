@@ -773,6 +773,7 @@ export function VobizProvider({ children }) {
       }
     },
     [
+      appendCallHistory,
       attachRemoteAudio,
       clearHangupFallbackTimer,
       clearPostCallFlowTimer,

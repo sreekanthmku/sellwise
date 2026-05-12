@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Bot,
@@ -20,7 +21,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { LeadCard } from "@/components/LeadCard";
 import { TabButton } from "@/components/leads/TabButton";
-import { CallNumberModal } from "@/components/leads/CallNumberModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -355,11 +355,10 @@ function ScheduleAiCallsDrawer({ open, onOpenChange, selectedLeadCount }) {
 }
 
 export default function Leads() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
-  const { moveAiLeadToHuman, humanLeads } = useLeadsData();
+  const { moveAiLeadToHuman } = useLeadsData();
   const { tab, switchTab, leads, humanLeadCount, aiLeadCount } = useLeadsTab();
-  const [callModalOpen, setCallModalOpen] = useState(false);
-  const [callModalLead, setCallModalLead] = useState(null);
   const [selectedAiLeadIds, setSelectedAiLeadIds] = useState(() => new Set());
   const [scheduleAiCallsOpen, setScheduleAiCallsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -393,16 +392,6 @@ export default function Leads() {
   const hasActiveFilters = priorityFilters.size > 0 || statusFilters.size > 0;
   const allVisibleAiLeadsSelected =
     visibleAiLeadIds.length > 0 && visibleAiLeadIds.every((id) => selectedAiLeadIds.has(id));
-
-  const openCallModal = (lead) => {
-    setCallModalLead(lead ?? null);
-    setCallModalOpen(true);
-  };
-
-  const handleCallModalOpenChange = (nextOpen) => {
-    setCallModalOpen(nextOpen);
-    if (!nextOpen) setCallModalLead(null);
-  };
 
   const handleSelectAllAiLeads = (checked) => {
     setSelectedAiLeadIds((prev) => {
@@ -476,7 +465,7 @@ export default function Leads() {
             type="button"
             data-testid="leads-header-phone-btn"
             aria-label="Phone"
-            onClick={() => openCallModal(null)}
+            onClick={() => navigate("/dialer")}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e9ebef] bg-white text-[#6b7380] transition-colors hover:bg-[#fafafa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
           >
             <Phone className="h-[18px] w-[18px]" fill="currentColor" strokeWidth={2.25} />
@@ -660,12 +649,6 @@ export default function Leads() {
         )}
       </div>
 
-      <CallNumberModal
-        open={callModalOpen}
-        onOpenChange={handleCallModalOpenChange}
-        initialLead={callModalLead}
-        humanLeads={humanLeads}
-      />
       <ScheduleAiCallsDrawer
         open={scheduleAiCallsOpen}
         onOpenChange={setScheduleAiCallsOpen}
