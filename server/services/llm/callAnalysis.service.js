@@ -73,7 +73,7 @@ async function persistCallbackLlmState(jsonPath, llmKey, next) {
  * Persists "details" LLM output under `call-analysis/<id>.details.json` and links it from the callback JSON.
  *
  * @param {import('../../config/index.js').AppConfig} config
- * @param {{ jsonPath: string, audioPath: string, metadata: Record<string, unknown> }} ctx
+ * @param {{ jsonPath: string, audioPath: string, metadata: Record<string, unknown>, skipFollowUpTranscript?: boolean }} ctx
  */
 export function schedulePostRecordingAnalysis(config, ctx) {
     void runPostRecordingAnalysis(config, { ...ctx, kind: 'details' }).catch((err) => {
@@ -83,10 +83,10 @@ export function schedulePostRecordingAnalysis(config, ctx) {
 
 /**
  * @param {import('../../config/index.js').AppConfig} config
- * @param {{ jsonPath: string, audioPath: string, metadata: Record<string, unknown>, kind: AnalysisKind }} ctx
+ * @param {{ jsonPath: string, audioPath: string, metadata: Record<string, unknown>, kind: AnalysisKind, skipFollowUpTranscript?: boolean }} ctx
  */
 async function runPostRecordingAnalysis(config, ctx) {
-    const { jsonPath, audioPath, metadata, kind } = ctx;
+    const { jsonPath, audioPath, metadata, kind, skipFollowUpTranscript } = ctx;
     const idPart = idPartFromRecordingCallbackPath(jsonPath);
 
     let provider;
@@ -200,7 +200,11 @@ async function runPostRecordingAnalysis(config, ctx) {
 
     console.log('[llm/call-analysis] updated callback:', jsonPath, analysisPayload.status);
 
-    if ((kind === 'details' || kind === 'feedback') && analysisPayload.status === 'completed') {
+    if (
+        !skipFollowUpTranscript &&
+        (kind === 'details' || kind === 'feedback') &&
+        analysisPayload.status === 'completed'
+    ) {
         try {
             await scheduleTranscriptAnalysisByCallUuid(config, idPart);
         } catch (e) {

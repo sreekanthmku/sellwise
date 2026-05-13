@@ -5,6 +5,7 @@ import { createMediaRouter } from './routes/media.routes.js';
 import { createWebhooksRouter } from './routes/webhooks.routes.js';
 import { createVoiceRouter } from './routes/voice.routes.js';
 import { createCallAnalysisApiRouter } from './routes/callAnalysisApi.routes.js';
+import { createUlaiRouter } from './routes/ulai.routes.js';
 
 /**
  * @param {import('./config/index.js').AppConfig} config
@@ -36,6 +37,7 @@ export function createApp(config) {
     });
 
     app.use('/api', createCallAnalysisApiRouter());
+    app.use('/api', createUlaiRouter());
     app.use(createMediaRouter());
     app.use(createWebhooksRouter());
     app.use(createVoiceRouter());

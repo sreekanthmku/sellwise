@@ -25,6 +25,13 @@ export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
  * @property {string} [geminiModel]
  * @property {string} [openaiApiKey]
  * @property {string} [openaiModel]
+ * @property {string} [ulaiBaseUrl]
+ * @property {string} [ulaiApiKey]
+ * @property {string} [ulaiWorkspaceId]
+ * @property {string} [ulaiAgentId]
+ * @property {string} [ulaiChannelId]
+ * @property {string} [ulaiChannel]
+ * @property {string} [ulaiFromNumber]
  */
 
 /** @returns {AppConfig} */
@@ -61,5 +68,14 @@ export function loadConfig() {
         geminiModel: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
         openaiApiKey: process.env.OPENAI_API_KEY,
         openaiModel: process.env.OPENAI_MODEL || 'gpt-4o',
+        ulaiBaseUrl:
+            process.env.ULAI_BASE_URL?.trim() ||
+            'https://ulai.co/platform-layer',
+        ulaiApiKey: process.env.ULAI_API_KEY?.trim(),
+        ulaiWorkspaceId: process.env.ULAI_WORKSPACE_ID?.trim(),
+        ulaiAgentId: process.env.ULAI_AGENT_ID?.trim(),
+        ulaiChannelId: process.env.ULAI_CHANNEL_ID?.trim(),
+        ulaiChannel: process.env.ULAI_CHANNEL?.trim() || 'SIP',
+        ulaiFromNumber: process.env.ULAI_FROM_NUMBER?.trim() || process.env.CALLER_ID?.trim(),
     };
 }

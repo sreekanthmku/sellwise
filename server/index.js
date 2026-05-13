@@ -31,6 +31,10 @@ app.listen(config.port, () => {
   7. GET /health — liveness JSON
 
   8. GET /api/call-analysis/:callUuid — poll call-analysis/<id>.json (3s) until found
+
+  9. POST /api/ulai/outbound-call — proxy to Ulai outbound (body: { phone_number })
+
+ 10. POST /ai-call-ended — Ulai webhook (logs request; fetches call details → ai-call/)
 -------------------------------------------------------
 `);
 });

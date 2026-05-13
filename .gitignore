@@ -67,6 +67,7 @@ chainlit.md
 agenthub/agents/youtube/db
 call-analysis/
 call-transcripts/
+ai-call/
 docs/
 
 # Local recordings / callback payloads

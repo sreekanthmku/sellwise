@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   User,
   Bot,
@@ -39,6 +40,11 @@ import {
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { useLeadsTab } from "@/hooks/useLeadsTab";
 import { mergeLeadDetail } from "@/data/leadDetails";
+import { phoneDisplayToE164 } from "@/lib/phoneE164";
+import { postUlaiOutboundCall } from "@/lib/ulaiApi";
+
+const tpl = (str, vars) =>
+  str.replace(/\{\{(\w+)\}\}/g, (_, k) => (vars[k] != null ? String(vars[k]) : ""));
 
 function leadMatchesSearch(lead, query) {
   const q = query.trim().toLowerCase();
@@ -187,13 +193,59 @@ function FilterLeadsDrawer({
   );
 }
 
-function ScheduleAiCallsDrawer({ open, onOpenChange, selectedLeadCount }) {
+function ScheduleAiCallsDrawer({
+  open,
+  onOpenChange,
+  selectedLeadCount,
+  selectedLeads,
+  onScheduled,
+}) {
+  const { t } = useLanguage();
   const [maxRetries, setMaxRetries] = useState(3);
   const [retryAfter, setRetryAfter] = useState(2);
   const [retryUnit, setRetryUnit] = useState("hr");
 
   const updateCount = (setter, delta, min, max) => {
     setter((value) => Math.min(max, Math.max(min, value + delta)));
+  };
+
+  const handleConfirmSchedule = () => {
+    if (!selectedLeads.length) return;
+    const leadsSnapshot = [...selectedLeads];
+    onScheduled?.();
+    onOpenChange(false);
+
+    void (async () => {
+      let ok = 0;
+      let fail = 0;
+      let firstError = "";
+      for (const lead of leadsSnapshot) {
+        const phone = phoneDisplayToE164(mergeLeadDetail(lead).phoneDisplay);
+        if (!phone) {
+          fail += 1;
+          continue;
+        }
+        try {
+          await postUlaiOutboundCall(phone);
+          ok += 1;
+        } catch (e) {
+          fail += 1;
+          if (!firstError && e instanceof Error && e.message) firstError = e.message;
+        }
+      }
+      if (ok > 0 && fail === 0) {
+        toast.success(tpl(t.scheduleAiCallsApiSuccess, { count: ok }), { duration: 3200 });
+      } else if (ok > 0 && fail > 0) {
+        toast.warning(tpl(t.scheduleAiCallsApiPartial, { ok, fail }), { duration: 4000 });
+      } else {
+        toast.error(
+          tpl(t.scheduleAiCallsApiFail, {
+            message: firstError || "—",
+          }),
+          { duration: 4500 },
+        );
+      }
+    })();
   };
 
   return (
@@ -342,8 +394,9 @@ function ScheduleAiCallsDrawer({ open, onOpenChange, selectedLeadCount }) {
             </DrawerClose>
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
-              className="rounded-full bg-[color:var(--blue-600)] px-4 py-3 font-body text-[14px] font-semibold text-white transition-colors hover:bg-[color:var(--blue-700)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)]"
+              disabled={selectedLeadCount === 0}
+              onClick={handleConfirmSchedule}
+              className="rounded-full bg-[color:var(--blue-600)] px-4 py-3 font-body text-[14px] font-semibold text-white transition-colors hover:bg-[color:var(--blue-700)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)] disabled:pointer-events-none disabled:opacity-50"
             >
               Confirm schedule
             </button>
@@ -357,7 +410,7 @@ function ScheduleAiCallsDrawer({ open, onOpenChange, selectedLeadCount }) {
 export default function Leads() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { moveAiLeadToHuman } = useLeadsData();
+  const { moveAiLeadToHuman, aiLeads } = useLeadsData();
   const { tab, switchTab, leads, humanLeadCount, aiLeadCount } = useLeadsTab();
   const [selectedAiLeadIds, setSelectedAiLeadIds] = useState(() => new Set());
   const [scheduleAiCallsOpen, setScheduleAiCallsOpen] = useState(false);
@@ -388,6 +441,10 @@ export default function Leads() {
   }, [leads]);
   const visibleAiLeadIds = tab === "ai" ? filteredLeads.map((lead) => lead.id) : [];
   const selectedAiLeadCount = selectedAiLeadIds.size;
+  const selectedAiLeads = useMemo(
+    () => aiLeads.filter((lead) => selectedAiLeadIds.has(lead.id)),
+    [aiLeads, selectedAiLeadIds],
+  );
   const hasSelectedAiLeads = selectedAiLeadCount > 0;
   const hasActiveFilters = priorityFilters.size > 0 || statusFilters.size > 0;
   const allVisibleAiLeadsSelected =
@@ -653,6 +710,8 @@ export default function Leads() {
         open={scheduleAiCallsOpen}
         onOpenChange={setScheduleAiCallsOpen}
         selectedLeadCount={selectedAiLeadCount}
+        selectedLeads={selectedAiLeads}
+        onScheduled={() => setSelectedAiLeadIds(new Set())}
       />
       <FilterLeadsDrawer
         open={filterOpen}
