@@ -372,6 +372,7 @@ export default function CallFeedback() {
 
   useEffect(() => {
     const passed = location.state?.analysisResult;
+    const skipAiFeedback = location.state?.skipFeedback === true;
     if (!callUuid || typeof callUuid !== "string") {
       setAnalysisLoading(false);
       setAnalysisError("");
@@ -407,6 +408,13 @@ export default function CallFeedback() {
         }
         const detailsResult = detailsData.analysis.result || null;
 
+        if (skipAiFeedback) {
+          setAnalysisResult(
+            detailsResult && typeof detailsResult === "object" ? detailsResult : {},
+          );
+          return;
+        }
+
         // 2) Then fetch feedback-only payload and merge
         const feedbackUrl = `${defaultApiBase()}/api/call-analysis/${encodeURIComponent(callUuid)}/feedback`;
         const feedbackRes = await fetch(feedbackUrl);
@@ -441,7 +449,7 @@ export default function CallFeedback() {
     return () => {
       cancelled = true;
     };
-  }, [callUuid, location.state?.analysisResult]);
+  }, [callUuid, location.state?.analysisResult, location.state?.skipFeedback]);
 
   useEffect(() => {
     if (!recordingOpen || !callUuid || typeof callUuid !== "string") return;

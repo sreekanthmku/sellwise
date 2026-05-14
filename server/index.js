@@ -35,6 +35,8 @@ app.listen(config.port, () => {
   9. POST /api/ulai/outbound-call — proxy to Ulai outbound (body: { phone_number })
 
  10. POST /ai-call-ended — Ulai webhook (logs request; fetches call details → ai-call/)
+
+ 11. GET /api/recent-calls — Ulai calls for Performance “Recent calls”
 -------------------------------------------------------
 `);
 });

@@ -60,7 +60,7 @@ function resolveAnalysisFilePath(config, callUuid, kind) {
  * @param {import('../config/index.js').AppConfig} config
  * @param {string} callUuid
  */
-async function findRecordingFile(config, callUuid) {
+async function findRecordingInVobizDir(config, callUuid) {
     const id = safeFilenamePart(String(callUuid || '').trim());
     if (!id || id === 'recording') {
         const err = new Error('Invalid callUuid');
@@ -99,6 +99,115 @@ async function findRecordingFile(config, callUuid) {
     }
 
     return { filePath, fileName, id };
+}
+
+/**
+ * Use `local_recording_path` from recording-callback JSON (Ulai saves under `ai-call/recordings/`).
+ * @param {import('../config/index.js').AppConfig} config
+ * @param {string} id safe id part
+ */
+async function findRecordingFromCallbackMetadata(config, id) {
+    const cbPath = path.resolve(config.projectRoot, `recording-callback-${id}.json`);
+    const root = path.resolve(config.projectRoot);
+    const rootPrefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+    if (cbPath === root || !cbPath.startsWith(rootPrefix)) {
+        return null;
+    }
+
+    let doc;
+    try {
+        const raw = await fsp.readFile(cbPath, 'utf8');
+        doc = JSON.parse(raw);
+    } catch {
+        return null;
+    }
+
+    const p = doc?.local_recording_path;
+    if (typeof p !== 'string' || !p.trim()) return null;
+
+    const abs = path.resolve(p.trim());
+    if (abs === root || !abs.startsWith(rootPrefix)) return null;
+
+    try {
+        await fsp.access(abs);
+    } catch {
+        return null;
+    }
+
+    return { filePath: abs, fileName: path.basename(abs), id };
+}
+
+/**
+ * @param {import('../config/index.js').AppConfig} config
+ * @param {string} callUuid
+ */
+async function findRecordingFile(config, callUuid) {
+    const id = safeFilenamePart(String(callUuid || '').trim());
+    if (!id || id === 'recording') {
+        const err = new Error('Invalid callUuid');
+        err.status = 400;
+        throw err;
+    }
+
+    try {
+        return await findRecordingInVobizDir(config, callUuid);
+    } catch (e) {
+        const err = /** @type {Error & { status?: number }} */ (e);
+        if (err.status !== 404) throw err;
+    }
+
+    const fromMeta = await findRecordingFromCallbackMetadata(config, id);
+    if (fromMeta) return fromMeta;
+
+    const notFound = new Error('Recording not found');
+    notFound.status = 404;
+    throw notFound;
+}
+
+/**
+ * Ulai: no `.feedback.json` — return empty result so Call Feedback page can load details only.
+ * @param {import('../config/index.js').AppConfig} config
+ * @param {string} id
+ */
+async function maybeUlaiSyntheticFeedbackResponse(config, id) {
+    const cbPath = path.resolve(config.projectRoot, `recording-callback-${id}.json`);
+    const root = path.resolve(config.projectRoot);
+    const rootPrefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+    if (cbPath === root || !cbPath.startsWith(rootPrefix)) return null;
+
+    let doc;
+    try {
+        const raw = await fsp.readFile(cbPath, 'utf8');
+        doc = JSON.parse(raw);
+    } catch {
+        return null;
+    }
+    if (doc?.source !== 'ulai') return null;
+
+    const feedbackDir = path.resolve(config.callAnalysisDir);
+    const feedbackPath = path.resolve(feedbackDir, `${id}.feedback.json`);
+    const fbPrefix = feedbackDir.endsWith(path.sep) ? feedbackDir : `${feedbackDir}${path.sep}`;
+    if (feedbackPath === feedbackDir || !feedbackPath.startsWith(fbPrefix)) return null;
+
+    try {
+        await fsp.access(feedbackPath);
+        return null;
+    } catch {
+        /* no feedback file */
+    }
+
+    return {
+        ok: true,
+        id,
+        attempts: 1,
+        poll_interval_ms: POLL_MS,
+        analysis: {
+            id,
+            status: 'skipped',
+            result: {},
+            source: 'ulai',
+        },
+    };
 }
 
 /**
@@ -198,6 +307,12 @@ export async function getCallFeedbackByUuid(req, res) {
     const config = req.app.locals.config;
     const { filePath, id } = resolveAnalysisFilePath(config, req.params.callUuid, 'feedback');
     const legacyPath = path.resolve(path.dirname(filePath), `${id}.json`);
+
+    const synthetic = await maybeUlaiSyntheticFeedbackResponse(config, id);
+    if (synthetic) {
+        res.status(200).json(synthetic);
+        return;
+    }
 
     let maxAttempts = parseInt(String(req.query.maxAttempts || ''), 10);
     if (!Number.isFinite(maxAttempts) || maxAttempts < 1) {
@@ -309,6 +424,49 @@ export async function getCallTranscriptByUuid(req, res) {
     } catch (e) {
         const err = /** @type {NodeJS.ErrnoException} */ (e);
         if (err.code !== 'ENOENT') throw err;
+    }
+
+    const ulaiTranscriptPath = path.resolve(config.projectRoot, 'ai-call', 'transcripts', `${id}.json`);
+    const ulaiRoot = path.resolve(config.projectRoot, 'ai-call', 'transcripts');
+    const ulaiPrefix = ulaiRoot.endsWith(path.sep) ? ulaiRoot : `${ulaiRoot}${path.sep}`;
+    if (ulaiTranscriptPath !== ulaiRoot && ulaiTranscriptPath.startsWith(ulaiPrefix)) {
+        try {
+            const raw = await fsp.readFile(ulaiTranscriptPath, 'utf8');
+            const parsed = JSON.parse(raw);
+            const rows = Array.isArray(parsed?.transcript) ? parsed.transcript : [];
+            const lines = rows.map((row) => {
+                const sp = typeof row?.speaker === 'string' ? row.speaker : 'unknown';
+                const content = typeof row?.content === 'string' ? row.content : '';
+                return `${sp}: ${content}`;
+            });
+            const transcript = lines.join('\n').trim();
+            const segments = rows.map((row) => {
+                const ts = typeof row?.timestamp === 'string' ? row.timestamp : '';
+                let time = '';
+                if (ts.length >= 8) {
+                    const tPart = ts.includes('T') ? ts.split('T')[1] : ts;
+                    time = tPart.slice(0, 8);
+                }
+                return {
+                    speaker: typeof row?.speaker === 'string' ? row.speaker : '',
+                    text: typeof row?.content === 'string' ? row.content : '',
+                    time,
+                };
+            });
+            res.status(200).json({
+                ok: true,
+                id,
+                source: 'ulai',
+                status: 'completed',
+                transcript,
+                segments,
+                entry: parsed,
+            });
+            return;
+        } catch (e) {
+            const err = /** @type {NodeJS.ErrnoException} */ (e);
+            if (err.code !== 'ENOENT') throw err;
+        }
     }
 
     try {

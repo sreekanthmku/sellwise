@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
@@ -9,6 +9,7 @@ import {
   performanceToday,
 } from "@/data/performance";
 import { useVobiz } from "@/vobiz/VobizProvider";
+import { defaultApiBase } from "@/vobiz/constants";
 
 function MetricBlock({ value, label, testId }) {
   return (
@@ -40,6 +41,7 @@ export default function Performance() {
     const state = {
       callUuid: uuid,
       displayName: typeof row.name === "string" ? row.name : "Unknown",
+      skipFeedback: row.skipFeedback === true,
       durationSeconds:
         typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
           ? Math.max(0, Math.floor(row.durationSeconds))
@@ -84,11 +86,75 @@ export default function Performance() {
           typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
             ? row.endedAtIso
             : new Date().toISOString(),
+        skipFeedback: false,
       };
     });
   }, [callHistory, t.performance.today]);
 
-  const rowsToRender = liveRecentCalls.length > 0 ? liveRecentCalls : performanceRecentCalls;
+  const [aiRecentCalls, setAiRecentCalls] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const base = defaultApiBase();
+        const res = await fetch(`${base}/api/recent-calls`);
+        const data = await res.json().catch(() => null);
+        if (cancelled || !data?.ok || !Array.isArray(data.calls)) {
+          if (!cancelled) setAiRecentCalls([]);
+          return;
+        }
+        if (!cancelled) setAiRecentCalls(data.calls);
+      } catch {
+        if (!cancelled) setAiRecentCalls([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const mergedRecentCalls = useMemo(() => {
+    const mapAiRow = (row) => {
+      const endedDate = row.endedAtIso ? new Date(row.endedAtIso) : null;
+      const hasValidDate = endedDate && !Number.isNaN(endedDate.getTime());
+      const timeLabel = hasValidDate
+        ? endedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : t.performance.today;
+      return {
+        id: row.id,
+        name: typeof row.name === "string" && row.name.trim() ? row.name : "AI call",
+        callType: "ai",
+        outcome: ["interested", "followUp", "notInterested"].includes(row.outcome)
+          ? row.outcome
+          : "followUp",
+        avatarVariant: "green",
+        timeLabel,
+        callUuid: row.callUuid || null,
+        leadId: row.leadId != null && String(row.leadId).length > 0 ? String(row.leadId) : null,
+        durationSeconds:
+          typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+            ? Math.max(0, Math.floor(row.durationSeconds))
+            : 0,
+        endedAtIso:
+          typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+            ? row.endedAtIso
+            : new Date().toISOString(),
+        skipFeedback: row.skipFeedback === true,
+      };
+    };
+
+    const aiRows = aiRecentCalls.map(mapAiRow);
+    const combined = [...liveRecentCalls, ...aiRows];
+    combined.sort((a, b) => {
+      const da = new Date(a.endedAtIso || 0).getTime();
+      const db = new Date(b.endedAtIso || 0).getTime();
+      return db - da;
+    });
+    return combined;
+  }, [liveRecentCalls, aiRecentCalls, t.performance.today]);
+
+  const rowsToRender = mergedRecentCalls.length > 0 ? mergedRecentCalls : performanceRecentCalls;
 
   return (
     <AppScreen
