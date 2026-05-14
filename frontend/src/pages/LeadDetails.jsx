@@ -9,6 +9,8 @@ import {
   MapPin,
   Palette,
   Phone,
+  Star,
+  User,
   Wallet,
 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
@@ -19,6 +21,7 @@ import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { initialsFromName, mergeLeadDetail } from "@/data/leadDetails";
 import { maskPhoneLastFour } from "@/lib/maskPhone";
+import { cn } from "@/lib/utils";
 import { openWhatsAppChat } from "@/lib/whatsapp";
 
 const formatAdded = (added, t) => {
@@ -40,24 +43,37 @@ const PREF_ICONS = {
 const STEP_ICONS = [Calendar, Mail, Phone];
 
 const DetailCard = ({ children, className = "" }) => (
-  <section
-    className={`rounded-2xl border border-[#e4e4e4] bg-white px-4 py-4 ${className}`}
-  >
+  <section className={cn("rounded-2xl border border-[#e4e4e4] bg-white px-4 py-4", className)}>
     {children}
   </section>
+);
+
+const DetailIconChip = ({ children }) => (
+  <div
+    className="mt-0.5 flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-[8px] border border-[#dbe7ff] bg-[#eef4ff] [&_svg]:h-[13px] [&_svg]:w-[13px]"
+    aria-hidden
+  >
+    {children}
+  </div>
 );
 
 export default function LeadDetails() {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { getLeadById } = useLeadsData();
+  const { getLeadById, humanLeads } = useLeadsData();
 
   const lead = getLeadById(leadId);
   if (!lead) return <Navigate to="/leads" replace />;
 
+  const isHumanLead = humanLeads.some((l) => l.id === lead.id);
   const detail = mergeLeadDetail(lead);
   const initials = initialsFromName(lead.name);
+  const callIsRecommended = lead.recommendedAction === "call";
+  const whatsappIsRecommended = lead.recommendedAction === "whatsapp";
+  const briefPersona =
+    t.leadDetail.briefPersonas[detail.briefPersonaKey] ?? t.leadDetail.briefPersonas.generic;
+  const vehicleInterestLabel = t.interestedIn === "Vehicle interest" ? "Vehicle Interest" : t.interestedIn;
 
   const prefValue = (row) => {
     if (row.valueKey === "_model") return row.model;
@@ -72,119 +88,222 @@ export default function LeadDetails() {
       showBottomNav
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-none pb-8">
-      {/* Profile + Brief Persona (single card) */}
-      <DetailCard className="mt-1 px-4 py-4 sm:px-5 sm:py-5">
-        <div className="flex min-h-0 gap-0">
-          <div className="min-w-0 flex-[3] pr-3">
-            <div className="flex gap-3">
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--blue-300)] font-body text-[18px] font-bold text-[color:var(--blue-600)]"
-                aria-hidden
-              >
-                {initials}
-              </div>
+      {/* Profile */}
+      <DetailCard
+        className={cn(
+          "mt-1 px-4 py-4 sm:px-5 sm:py-5",
+          isHumanLead && "rounded-[20px] border-[#f1f5f9] shadow-[var(--card-shadow)]",
+        )}
+      >
+        {isHumanLead ? (
+          <>
+            <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <h1 className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2">
+                <h1 className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)]">
                   {lead.name}
                 </h1>
-                <p className="mt-2 text-[14px] text-[color:var(--gray-300)]">
-                  {t.interestedIn}:{" "}
-                  <span className="font-medium">{lead.interestedIn}</span>
+                <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
+                  {vehicleInterestLabel}: <span className="font-semibold">{lead.interestedIn}</span>
                 </p>
               </div>
+              <span className="inline-flex max-w-[min(100%,12rem)] shrink-0 items-center gap-1.5 rounded-full border border-black/[0.04] bg-[color:var(--blue-300)] px-2.5 py-1.5 font-body text-[12px] font-medium leading-snug text-[color:var(--gray-300)]">
+                <User className="h-3.5 w-3.5 shrink-0 text-[color:var(--blue-600)]" strokeWidth={2} aria-hidden />
+                <span className="min-w-0 truncate">{t.humanFollowUp}</span>
+              </span>
             </div>
 
             <ul className="mt-4 flex flex-col gap-2.5">
               <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
-                <Phone
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--blue-600)]"
-                  strokeWidth={2.25}
-                />
-                <span className="font-medium">{maskPhoneLastFour(detail.phoneDisplay)}</span>
+                <DetailIconChip>
+                  <Phone className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <span className="min-w-0 pt-0.5 font-semibold">{maskPhoneLastFour(detail.phoneDisplay)}</span>
               </li>
               <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
-                <MapPin
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--blue-600)]"
-                  strokeWidth={2.25}
-                />
-                <span className="font-medium">{detail.location}</span>
+                <DetailIconChip>
+                  <MapPin className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <span className="min-w-0 pt-0.5 font-semibold">{detail.location}</span>
               </li>
               <li className="flex items-start gap-2.5 text-[14px]">
-                <Funnel
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--blue-600)]"
-                  strokeWidth={2.25}
-                />
-                <div className="flex min-w-0 flex-1">
-                  <span className="w-[7.25rem] shrink-0 text-[color:var(--gray-200)]">
+                <DetailIconChip>
+                  <Funnel className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                  <span className="shrink-0 text-[color:var(--gray-200)]">
                     {t.leadDetail.leadSource} :
                   </span>
-                  <span className="min-w-0 font-medium text-[color:var(--gray-300)]">
+                  <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
                     {t.leadDetail.leadSources[detail.leadSourceKey] ?? detail.leadSourceKey}
                   </span>
                 </div>
               </li>
               <li className="flex items-start gap-2.5 text-[14px]">
-                <Calendar
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--blue-600)]"
-                  strokeWidth={2.25}
-                />
-                <div className="flex min-w-0 flex-1">
-                  <span className="w-[7.25rem] shrink-0 text-[color:var(--gray-200)]">
+                <DetailIconChip>
+                  <Calendar className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                  <span className="shrink-0 text-[color:var(--gray-200)]">
                     {t.leadDetail.added} :
                   </span>
-                  <span className="min-w-0 font-medium text-[color:var(--gray-300)]">
+                  <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
                     {formatAdded(detail.added, t)}
                   </span>
                 </div>
               </li>
             </ul>
-          </div>
 
-          <div className="flex w-[92px] shrink-0 flex-col items-center justify-center border-l border-[#e4e4e4] pl-3">
-            <div className="relative flex flex-col items-center">
-              <ActionCircle
-                color="border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
-                testid="lead-detail-call"
-                onClick={() => navigate(`/leads/${lead.id}/call`)}
-              >
-                <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
-              </ActionCircle>
-              {lead.recommendedAction === "call" ? (
-                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                  <RecommendedPill />
-                </div>
-              ) : null}
+            <div className="mt-4 flex gap-2">
+              <div className="relative min-w-0 flex-1">
+                {callIsRecommended ? (
+                  <span
+                    className="pointer-events-none absolute -right-0.5 -top-0.5 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--yellow-200)] text-[color:var(--yellow-600)] ring-2 ring-white"
+                    aria-hidden
+                  >
+                    <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="lead-detail-call"
+                  onClick={() => navigate(`/leads/${lead.id}/call`)}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--blue-600)] font-body text-[14px] font-semibold text-white shadow-none transition-colors hover:bg-[color:var(--blue-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)] focus-visible:ring-offset-2"
+                >
+                  <Phone className="h-[18px] w-[18px] shrink-0" strokeWidth={2.25} />
+                  {t.dialer.call}
+                </button>
+              </div>
+              <div className="relative min-w-0 flex-1">
+                {whatsappIsRecommended ? (
+                  <span
+                    className="pointer-events-none absolute -right-0.5 -top-0.5 z-[1] inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--yellow-200)] text-[color:var(--yellow-600)] ring-2 ring-white"
+                    aria-hidden
+                  >
+                    <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  data-testid="lead-detail-whatsapp"
+                  onClick={() => openWhatsAppChat(detail.phoneDisplay)}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--success)] font-body text-[14px] font-semibold text-white shadow-none transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)] focus-visible:ring-offset-2 active:opacity-90"
+                >
+                  <WhatsAppIcon size={20} className="shrink-0" />
+                  WhatsApp
+                </button>
+              </div>
             </div>
-            <div
-              className={
-                lead.recommendedAction === "call" ? "relative mt-7" : "relative mt-5"
-              }
-            >
-              <ActionCircle
-                color="border-[color:var(--success)] bg-[color:var(--success)] text-white"
-                testid="lead-detail-whatsapp"
-                onClick={() => openWhatsAppChat(detail.phoneDisplay)}
-              >
-                <WhatsAppIcon size={22} />
-              </ActionCircle>
-              {lead.recommendedAction === "whatsapp" ? (
-                <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                  <RecommendedPill />
+          </>
+        ) : (
+          <>
+            <div className="flex min-h-0 gap-0">
+              <div className="min-w-0 flex-[3] pr-3">
+                <div className="flex gap-3">
+                  <div
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--blue-300)] font-body text-[18px] font-bold text-[color:var(--blue-600)]"
+                    aria-hidden
+                  >
+                    {initials}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2">
+                      {lead.name}
+                    </h1>
+                    <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
+                      {vehicleInterestLabel}:{" "}
+                      <span className="font-semibold">{lead.interestedIn}</span>
+                    </p>
+                  </div>
                 </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
 
-        <div className="mt-4 border-t border-[#e4e4e4] pt-4">
-          <h2 className="font-body text-[16px] font-bold text-[#111827]">
-            {t.leadDetail.briefPersona}
-          </h2>
-          <p className="mt-3 text-[14px] leading-relaxed text-[color:var(--gray-200)]">
-            {t.leadDetail.briefPersonas[detail.briefPersonaKey] ??
-              t.leadDetail.briefPersonas.generic}
-          </p>
-        </div>
+                <ul className="mt-4 flex flex-col gap-2.5">
+                  <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
+                    <DetailIconChip>
+                      <Phone className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                    </DetailIconChip>
+                    <span className="pt-0.5 font-semibold">{maskPhoneLastFour(detail.phoneDisplay)}</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
+                    <DetailIconChip>
+                      <MapPin className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                    </DetailIconChip>
+                    <span className="pt-0.5 font-semibold">{detail.location}</span>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-[14px]">
+                    <DetailIconChip>
+                      <Funnel className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                    </DetailIconChip>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                      <span className="shrink-0 text-[color:var(--gray-200)]">
+                        {t.leadDetail.leadSource} :
+                      </span>
+                      <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
+                        {t.leadDetail.leadSources[detail.leadSourceKey] ?? detail.leadSourceKey}
+                      </span>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2.5 text-[14px]">
+                    <DetailIconChip>
+                      <Calendar className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                    </DetailIconChip>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                      <span className="shrink-0 text-[color:var(--gray-200)]">
+                        {t.leadDetail.added} :
+                      </span>
+                      <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
+                        {formatAdded(detail.added, t)}
+                      </span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex w-[92px] shrink-0 flex-col items-center justify-center border-l border-[#e4e4e4] pl-3">
+                <div className="relative flex flex-col items-center">
+                  <ActionCircle
+                    color="border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
+                    testid="lead-detail-call"
+                    onClick={() => navigate(`/leads/${lead.id}/call`)}
+                  >
+                    <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
+                  </ActionCircle>
+                  {lead.recommendedAction === "call" ? (
+                    <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
+                      <RecommendedPill />
+                    </div>
+                  ) : null}
+                </div>
+                <div
+                  className={
+                    lead.recommendedAction === "call" ? "relative mt-7" : "relative mt-5"
+                  }
+                >
+                  <ActionCircle
+                    color="border-[color:var(--success)] bg-[color:var(--success)] text-white"
+                    testid="lead-detail-whatsapp"
+                    onClick={() => openWhatsAppChat(detail.phoneDisplay)}
+                  >
+                    <WhatsAppIcon size={22} />
+                  </ActionCircle>
+                  {lead.recommendedAction === "whatsapp" ? (
+                    <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
+                      <RecommendedPill />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </DetailCard>
+
+      <DetailCard className="mt-4">
+        <h2 className="font-body text-[16px] font-bold text-[#111827]">
+          {t.leadDetail.briefPersona}
+        </h2>
+        <p className="mt-3 text-[14px] leading-relaxed text-[color:var(--gray-200)]">
+          {briefPersona}
+        </p>
       </DetailCard>
 
       {/* Preferences */}

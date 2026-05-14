@@ -85,17 +85,17 @@ export const LeadCard = ({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             {showSelectionCheckbox && (
-              <label className="mt-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center">
+              <label className="relative mt-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center">
                 <input
                   type="checkbox"
                   aria-label={`Select ${lead.name}`}
                   data-testid={`lead-select-${lead.id}`}
                   checked={isSelected}
                   onChange={(e) => onSelectedChange?.(e.target.checked)}
-                  className="peer sr-only"
+                  className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 />
                 <span
-                  className="flex h-[22px] w-[22px] items-center justify-center rounded-[2px] border-2 border-[#9CA3AF] bg-white transition-colors peer-checked:border-[color:var(--blue-600)] peer-checked:bg-[color:var(--blue-600)] peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--blue-400)] peer-focus-visible:ring-offset-2"
+                  className="pointer-events-none flex h-[22px] w-[22px] items-center justify-center rounded-[2px] border-2 border-[#9CA3AF] bg-white transition-colors peer-checked:border-[color:var(--blue-600)] peer-checked:bg-[color:var(--blue-600)] peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--blue-400)] peer-focus-visible:ring-offset-2"
                   aria-hidden="true"
                 >
                   <Check className="h-4 w-4 text-white" strokeWidth={3} />

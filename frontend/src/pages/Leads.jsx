@@ -615,19 +615,21 @@ export default function Leads() {
             data-testid="ai-bulk-actions"
           >
             <label className="flex min-w-0 items-center gap-3">
-              <input
-                type="checkbox"
-                checked={allVisibleAiLeadsSelected}
-                onChange={(e) => handleSelectAllAiLeads(e.target.checked)}
-                aria-label="Select all AI follow-up leads"
-                data-testid="ai-select-all"
-                className="peer sr-only"
-              />
-              <span
-                className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[2px] border-2 border-[#9CA3AF] bg-white transition-colors peer-checked:border-[color:var(--blue-600)] peer-checked:bg-[color:var(--blue-600)] peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--blue-400)] peer-focus-visible:ring-offset-2"
-                aria-hidden="true"
-              >
-                <Check className="h-4 w-4 text-white" strokeWidth={3} />
+              <span className="relative inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={allVisibleAiLeadsSelected}
+                  onChange={(e) => handleSelectAllAiLeads(e.target.checked)}
+                  aria-label="Select all AI follow-up leads"
+                  data-testid="ai-select-all"
+                  className="peer absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+                <span
+                  className="pointer-events-none flex h-[22px] w-[22px] items-center justify-center rounded-[2px] border-2 border-[#9CA3AF] bg-white transition-colors peer-checked:border-[color:var(--blue-600)] peer-checked:bg-[color:var(--blue-600)] peer-focus-visible:ring-2 peer-focus-visible:ring-[color:var(--blue-400)] peer-focus-visible:ring-offset-2"
+                  aria-hidden="true"
+                >
+                  <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                </span>
               </span>
               <span className="truncate font-body text-[16px] font-medium text-[color:var(--gray-200)]">
                 Select All
