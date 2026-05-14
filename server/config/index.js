@@ -32,6 +32,8 @@ export const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
  * @property {string} [ulaiChannelId]
  * @property {string} [ulaiChannel]
  * @property {string} [ulaiFromNumber]
+ * @property {string} [azureSpeechKey]
+ * @property {string} [azureSpeechRegion]
  */
 
 /** @returns {AppConfig} */
@@ -77,5 +79,7 @@ export function loadConfig() {
         ulaiChannelId: process.env.ULAI_CHANNEL_ID?.trim(),
         ulaiChannel: process.env.ULAI_CHANNEL?.trim() || 'SIP',
         ulaiFromNumber: process.env.ULAI_FROM_NUMBER?.trim() || process.env.CALLER_ID?.trim(),
+        azureSpeechKey: process.env.AZURE_SPEECH_KEY?.trim(),
+        azureSpeechRegion: process.env.AZURE_SPEECH_REGION?.trim(),
     };
 }

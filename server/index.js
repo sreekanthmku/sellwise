@@ -37,6 +37,8 @@ app.listen(config.port, () => {
  10. POST /ai-call-ended — Ulai webhook (logs request; fetches call details → ai-call/)
 
  11. GET /api/recent-calls — Ulai calls for Performance “Recent calls”
+
+ 12. POST /api/speech/transcribe — Guide mic: WAV body (16 kHz mono), query ?language=en-US (Azure STT)
 -------------------------------------------------------
 `);
 });

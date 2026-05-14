@@ -1,8 +1,14 @@
 export const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "id", label: "Bahasa" },
-  { code: "ja", label: "日本語" },
+  { code: "en", label: "English", speechLocale: "en-US" },
+  { code: "id", label: "Bahasa", speechLocale: "id-ID" },
+  { code: "ja", label: "日本語", speechLocale: "ja-JP" },
 ];
+
+/** Azure STT BCP-47 locale for the UI language selected in the app. */
+export function speechLocaleForLang(code) {
+  const row = LANGUAGES.find((l) => l.code === code);
+  return row?.speechLocale ?? "en-US";
+}
 
 export const translations = {
   en: {
@@ -230,6 +236,12 @@ export const translations = {
       generateError: "Could not get a reply. Try again.",
       sources: "Sources",
       initializingChat: "Initializing chat…",
+      voiceMicAria: "Speak — tap again when finished",
+      voiceStopAria: "Stop recording",
+      voiceMicDenied: "Microphone access was denied. Allow the mic in browser settings.",
+      voiceTranscribeError: "Could not transcribe audio. Try again.",
+      voiceTooShort: "Hold the mic a little longer and try again.",
+      voiceNoSpeech: "No speech detected. Try again or type your question.",
     },
 
     performance: {
@@ -696,6 +708,12 @@ export const translations = {
       generateError: "Tidak bisa mendapat balasan. Coba lagi.",
       sources: "Sumber",
       initializingChat: "Menginisialisasi chat…",
+      voiceMicAria: "Bicara — ketuk lagi setelah selesai",
+      voiceStopAria: "Hentikan rekaman",
+      voiceMicDenied: "Akses mikrofon ditolak. Izinkan mikrofon di pengaturan peramban.",
+      voiceTranscribeError: "Tidak bisa mentranskripsi audio. Coba lagi.",
+      voiceTooShort: "Tahan mikrofon sedikit lebih lama lalu coba lagi.",
+      voiceNoSpeech: "Tidak ada ucapan terdeteksi. Coba lagi atau ketik pertanyaan Anda.",
     },
 
     performance: {
@@ -1162,6 +1180,12 @@ export const translations = {
       generateError: "応答を取得できませんでした。もう一度お試しください。",
       sources: "出典",
       initializingChat: "チャットを初期化しています…",
+      voiceMicAria: "話す — 終わったらもう一度タップ",
+      voiceStopAria: "録音を停止",
+      voiceMicDenied: "マイクの使用が拒否されました。ブラウザの設定で許可してください。",
+      voiceTranscribeError: "音声を文字にできませんでした。もう一度お試しください。",
+      voiceTooShort: "もう少し長く話してからもう一度お試しください。",
+      voiceNoSpeech: "音声が検出されませんでした。もう一度か、文字で入力してください。",
     },
 
     performance: {
