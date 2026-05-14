@@ -154,7 +154,26 @@ export default function Performance() {
     return combined;
   }, [liveRecentCalls, aiRecentCalls, t.performance.today]);
 
-  const rowsToRender = mergedRecentCalls.length > 0 ? mergedRecentCalls : performanceRecentCalls;
+  const baseRecentRows = useMemo(
+    () => (mergedRecentCalls.length > 0 ? mergedRecentCalls : performanceRecentCalls),
+    [mergedRecentCalls]
+  );
+
+  const [recentCallsFilter, setRecentCallsFilter] = useState("all");
+
+  const displayedRecentRows = useMemo(() => {
+    if (recentCallsFilter === "all") return baseRecentRows;
+    return baseRecentRows.filter((row) => row.callType === recentCallsFilter);
+  }, [baseRecentRows, recentCallsFilter]);
+
+  const recentCallsFilterOptions = useMemo(
+    () => [
+      { value: "all", label: t.performance.recentCallsFilterAll, testId: "recent-calls-filter-all" },
+      { value: "human", label: t.performance.recentCallsFilterHuman, testId: "recent-calls-filter-human" },
+      { value: "ai", label: t.performance.recentCallsFilterAi, testId: "recent-calls-filter-ai" },
+    ],
+    [t.performance.recentCallsFilterAi, t.performance.recentCallsFilterAll, t.performance.recentCallsFilterHuman]
+  );
 
   return (
     <AppScreen
@@ -224,32 +243,69 @@ export default function Performance() {
         </section>
 
         <section className="mt-5" aria-labelledby="recent-calls-heading">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2
-              id="recent-calls-heading"
-              className="font-body text-[17px] font-bold leading-tight text-[color:var(--gray-300)]"
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2
+                id="recent-calls-heading"
+                className="font-body text-[17px] font-bold leading-tight text-[color:var(--gray-300)]"
+              >
+                {t.performance.recentCalls}
+              </h2>
+              <p className="mt-0.5 text-[13px] font-medium leading-none text-[color:var(--gray-200)]">
+                {t.performance.today}
+              </p>
+            </div>
+            <div
+              className="inline-flex shrink-0 rounded-full border border-[#e8eaef] bg-white p-0.5 shadow-sm"
+              role="tablist"
+              aria-label={t.performance.recentCallsFilterAria}
             >
-              {t.performance.recentCalls}
-            </h2>
-            <span className="text-[13px] font-medium leading-none text-[color:var(--gray-200)]">
-              {t.performance.today}
-            </span>
+              {recentCallsFilterOptions.map((opt) => {
+                const selected = recentCallsFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    data-testid={opt.testId}
+                    onClick={() => setRecentCallsFilter(opt.value)}
+                    className={[
+                      "rounded-full px-3 py-1.5 text-[13px] font-semibold leading-none transition-colors",
+                      selected
+                        ? "bg-[color:var(--blue-600)] text-white"
+                        : "text-[color:var(--gray-300)] hover:text-[color:var(--gray-200)]",
+                    ].join(" ")}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mt-3.5 flex flex-col gap-3" data-testid="recent-calls-list">
-            {rowsToRender.map((row) => (
-              <RecentCallCard
-                key={row.id}
-                testId={`recent-call-${row.id}`}
-                name={row.name}
-                callType={row.callType}
-                outcome={row.outcome}
-                avatarVariant={row.avatarVariant}
-                timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
-                callUuid={row.callUuid}
-                onViewFeedback={() => openCallFeedback(row)}
-              />
-            ))}
+            {displayedRecentRows.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-[#e8eaef] bg-white/80 px-4 py-6 text-center text-[14px] leading-snug text-[color:var(--gray-200)]">
+                {baseRecentRows.length === 0
+                  ? t.performance.recentCallsEmpty
+                  : t.performance.recentCallsFilterEmpty}
+              </p>
+            ) : (
+              displayedRecentRows.map((row) => (
+                <RecentCallCard
+                  key={row.id}
+                  testId={`recent-call-${row.id}`}
+                  name={row.name}
+                  callType={row.callType}
+                  outcome={row.outcome}
+                  avatarVariant={row.avatarVariant}
+                  timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
+                  callUuid={row.callUuid}
+                  onViewFeedback={() => openCallFeedback(row)}
+                />
+              ))
+            )}
           </div>
         </section>
       </div>
