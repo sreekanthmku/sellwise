@@ -143,7 +143,7 @@ export const translations = {
       summaryTitle: "Summary",
       summaryBody:
         "Customer is interested in an electric SUV but is hesitant about the price.",
-      didWellTitle: "What You Did Well",
+      didWellTitle: "What Went Well",
       didWellItems: ["Strong closing", "Good product knowledge"],
       improveTitle: "Improve Next",
       improveItems: [

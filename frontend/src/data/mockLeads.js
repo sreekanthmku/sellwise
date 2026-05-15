@@ -10,7 +10,25 @@ const IMG = {
   hatch: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=400&q=80",
 };
 
-export const humanLeads = [
+function leadStatusFromLead(lead) {
+  if (lead.status) return lead.status;
+  const tags = Array.isArray(lead.tags) ? lead.tags : [];
+  if (tags.includes("testDriveDone")) return "qualified";
+  if (tags.includes("whatsappReplied") || tags.includes("financeInterested")) return "interested";
+  if (tags.includes("needCallback") || tags.includes("priceEnquiry") || tags.includes("firstTimeBuyer")) {
+    return "new";
+  }
+  return "interested";
+}
+
+function withLeadStatus(lead) {
+  return {
+    ...lead,
+    status: leadStatusFromLead(lead),
+  };
+}
+
+const humanLeadsRaw = [
   {
     id: "h13",
     name: "Mankiran",
@@ -761,7 +779,9 @@ export const humanLeads = [
   },
 ];
 
-export const aiLeads = [
+export const humanLeads = humanLeadsRaw.map(withLeadStatus);
+
+const aiLeadsRaw = [
   {
     id: "a14",
     name: "Mankiran",
@@ -1584,3 +1604,5 @@ export const aiLeads = [
     },
   },
 ];
+
+export const aiLeads = aiLeadsRaw.map(withLeadStatus);

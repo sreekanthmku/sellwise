@@ -8,6 +8,8 @@ import {
   performanceRecentCalls,
   performanceToday,
 } from "@/data/performance";
+import { useLeadsData } from "@/context/LeadsDataContext";
+import { findLeadByPhoneDisplay } from "@/lib/phone";
 import { useVobiz } from "@/vobiz/VobizProvider";
 import { defaultApiBase } from "@/vobiz/constants";
 
@@ -31,6 +33,7 @@ export default function Performance() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { callHistory } = useVobiz();
+  const { humanLeads, aiLeads } = useLeadsData();
 
   const openCallFeedback = (row) => {
     const uuid = row.callUuid;
@@ -115,15 +118,23 @@ export default function Performance() {
   }, []);
 
   const mergedRecentCalls = useMemo(() => {
+    const allLeads = [...humanLeads, ...aiLeads];
+
+    const resolveLeadName = (rawName) => {
+      const matchedLead = findLeadByPhoneDisplay(allLeads, rawName);
+      return matchedLead?.name || rawName;
+    };
+
     const mapAiRow = (row) => {
       const endedDate = row.endedAtIso ? new Date(row.endedAtIso) : null;
       const hasValidDate = endedDate && !Number.isNaN(endedDate.getTime());
       const timeLabel = hasValidDate
         ? endedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : t.performance.today;
+      const rawName = typeof row.name === "string" && row.name.trim() ? row.name.trim() : "AI call";
       return {
         id: row.id,
-        name: typeof row.name === "string" && row.name.trim() ? row.name : "AI call",
+        name: resolveLeadName(rawName),
         callType: "ai",
         outcome: ["interested", "followUp", "notInterested"].includes(row.outcome)
           ? row.outcome
@@ -152,7 +163,7 @@ export default function Performance() {
       return db - da;
     });
     return combined;
-  }, [liveRecentCalls, aiRecentCalls, t.performance.today]);
+  }, [aiLeads, humanLeads, liveRecentCalls, aiRecentCalls, t.performance.today]);
 
   const baseRecentRows = useMemo(
     () => (mergedRecentCalls.length > 0 ? mergedRecentCalls : performanceRecentCalls),

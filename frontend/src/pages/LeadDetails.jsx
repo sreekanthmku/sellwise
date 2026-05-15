@@ -13,16 +13,21 @@ import {
   User,
   Wallet,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
+import { CallRecordingDrawer } from "@/components/CallRecordingDrawer";
 import { ActionCircle, RecommendedPill } from "@/components/LeadCard";
+import { RecentCallCard } from "@/components/RecentCallCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { initialsFromName, mergeLeadDetail } from "@/data/leadDetails";
 import { maskPhoneLastFour } from "@/lib/maskPhone";
 import { cn } from "@/lib/utils";
 import { openWhatsAppChat } from "@/lib/whatsapp";
+import { defaultApiBase } from "@/vobiz/constants";
+import { useVobiz } from "@/vobiz/VobizProvider";
 
 const formatAdded = (added, t) => {
   const { value, unit } = added;
@@ -41,6 +46,7 @@ const PREF_ICONS = {
 };
 
 const STEP_ICONS = [Calendar, Mail, Phone];
+const MAX_RECENT_CALL_ROWS = 25;
 
 const DetailCard = ({ children, className = "" }) => (
   <section className={cn("rounded-2xl border border-[#e4e4e4] bg-white px-4 py-4", className)}>
@@ -57,13 +63,130 @@ const DetailIconChip = ({ children }) => (
   </div>
 );
 
+function digitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function phoneMatches(rawA, rawB) {
+  const a = digitsOnly(rawA);
+  const b = digitsOnly(rawB);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a.length >= 7 && b.length >= 7) {
+    return a.slice(-10) === b.slice(-10) || a.slice(-9) === b.slice(-9);
+  }
+  return false;
+}
+
 export default function LeadDetails() {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { getLeadById, humanLeads } = useLeadsData();
-
+  const { getLeadById, humanLeads, moveAiLeadToHuman } = useLeadsData();
+  const { callHistory } = useVobiz();
+  const [aiRecentCalls, setAiRecentCalls] = useState([]);
+  const [recordingCall, setRecordingCall] = useState(null);
   const lead = getLeadById(leadId);
+  const leadPhoneDisplay = lead?.detail?.phoneDisplay ?? "";
+  const leadNameForCalls = lead?.name ?? "";
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const base = defaultApiBase();
+        const res = await fetch(`${base}/api/recent-calls`);
+        const data = await res.json().catch(() => null);
+        if (cancelled || !data?.ok || !Array.isArray(data.calls)) {
+          if (!cancelled) setAiRecentCalls([]);
+          return;
+        }
+        if (!cancelled) setAiRecentCalls(data.calls);
+      } catch {
+        if (!cancelled) setAiRecentCalls([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const realRecentCalls = useMemo(() => {
+    const humanRows = Array.isArray(callHistory)
+      ? callHistory
+          .filter((row) => {
+            if (!row || typeof row !== "object") return false;
+            if (row.leadId != null && String(row.leadId) === String(leadId)) return true;
+            return typeof row.name === "string" && row.name.trim() === leadNameForCalls;
+          })
+          .map((row, index) => ({
+            id: row.id || `human-call-${index}`,
+            name: leadNameForCalls || "Unknown",
+            callType: "human",
+            outcome:
+              row.endReason === "failed" || row.endReason === "busy"
+                ? "notInterested"
+                : "followUp",
+            avatarVariant: "purple",
+            timeLabel:
+              typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+                ? new Date(row.endedAtIso).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : t.performance.today,
+            callUuid: row.callUuid || null,
+            leadId: row.leadId != null ? String(row.leadId) : null,
+            durationSeconds:
+              typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+                ? Math.max(0, Math.floor(row.durationSeconds))
+                : 0,
+            endedAtIso:
+              typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+                ? row.endedAtIso
+                : new Date().toISOString(),
+            skipFeedback: false,
+          }))
+      : [];
+
+    const aiRows = Array.isArray(aiRecentCalls)
+      ? aiRecentCalls
+          .filter((row) => row && typeof row === "object")
+          .filter((row) => phoneMatches(row.name, leadPhoneDisplay))
+          .map((row, index) => ({
+            id: row.id || `ai-call-${index}`,
+            name: leadNameForCalls || "AI call",
+            callType: "ai",
+            outcome: ["interested", "followUp", "notInterested"].includes(row.outcome)
+              ? row.outcome
+              : "followUp",
+            avatarVariant: "green",
+            timeLabel:
+              typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+                ? new Date(row.endedAtIso).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : t.performance.today,
+            callUuid: row.callUuid || null,
+            leadId: row.leadId != null ? String(row.leadId) : null,
+            durationSeconds:
+              typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+                ? Math.max(0, Math.floor(row.durationSeconds))
+                : 0,
+            endedAtIso:
+              typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+                ? row.endedAtIso
+                : new Date().toISOString(),
+            skipFeedback: row.skipFeedback === true,
+          }))
+      : [];
+
+    const combined = [...humanRows, ...aiRows];
+    combined.sort((a, b) => new Date(b.endedAtIso).getTime() - new Date(a.endedAtIso).getTime());
+    return combined.slice(0, MAX_RECENT_CALL_ROWS);
+  }, [aiRecentCalls, callHistory, leadId, leadNameForCalls, leadPhoneDisplay, t.performance.today]);
+
   if (!lead) return <Navigate to="/leads" replace />;
 
   const isHumanLead = humanLeads.some((l) => l.id === lead.id);
@@ -74,6 +197,12 @@ export default function LeadDetails() {
   const briefPersona =
     t.leadDetail.briefPersonas[detail.briefPersonaKey] ?? t.leadDetail.briefPersonas.generic;
   const vehicleInterestLabel = t.interestedIn === "Vehicle interest" ? "Vehicle Interest" : t.interestedIn;
+  const leadStatusLabel = t.leadDetail.leadStatus ?? t.callDetails.leadStatusLabel;
+  const leadStatusValue =
+    t.leadDetail.statuses?.[lead.status] ??
+    t.callDetails.leadStatuses?.[lead.status] ??
+    lead.status ??
+    "—";
 
   const prefValue = (row) => {
     if (row.valueKey === "_model") return row.model;
@@ -104,6 +233,9 @@ export default function LeadDetails() {
                 </h1>
                 <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
                   {vehicleInterestLabel}: <span className="font-semibold">{lead.interestedIn}</span>
+                </p>
+                <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
+                  {leadStatusLabel}: <span className="font-semibold">{leadStatusValue}</span>
                 </p>
               </div>
               <span className="inline-flex max-w-[min(100%,12rem)] shrink-0 items-center gap-1.5 rounded-full border border-black/[0.04] bg-[color:var(--blue-300)] px-2.5 py-1.5 font-body text-[12px] font-medium leading-snug text-[color:var(--gray-300)]">
@@ -196,103 +328,79 @@ export default function LeadDetails() {
           </>
         ) : (
           <>
-            <div className="flex min-h-0 gap-0">
-              <div className="min-w-0 flex-[3] pr-3">
-                <div className="flex gap-3">
-                  <div
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--blue-300)] font-body text-[18px] font-bold text-[color:var(--blue-600)]"
-                    aria-hidden
-                  >
-                    {initials}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)] underline decoration-[color:var(--blue-600)] decoration-1 underline-offset-2">
-                      {lead.name}
-                    </h1>
-                    <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
-                      {vehicleInterestLabel}:{" "}
-                      <span className="font-semibold">{lead.interestedIn}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <ul className="mt-4 flex flex-col gap-2.5">
-                  <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
-                    <DetailIconChip>
-                      <Phone className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
-                    </DetailIconChip>
-                    <span className="pt-0.5 font-semibold">{maskPhoneLastFour(detail.phoneDisplay)}</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
-                    <DetailIconChip>
-                      <MapPin className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
-                    </DetailIconChip>
-                    <span className="pt-0.5 font-semibold">{detail.location}</span>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-[14px]">
-                    <DetailIconChip>
-                      <Funnel className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
-                    </DetailIconChip>
-                    <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
-                      <span className="shrink-0 text-[color:var(--gray-200)]">
-                        {t.leadDetail.leadSource} :
-                      </span>
-                      <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
-                        {t.leadDetail.leadSources[detail.leadSourceKey] ?? detail.leadSourceKey}
-                      </span>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5 text-[14px]">
-                    <DetailIconChip>
-                      <Calendar className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
-                    </DetailIconChip>
-                    <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
-                      <span className="shrink-0 text-[color:var(--gray-200)]">
-                        {t.leadDetail.added} :
-                      </span>
-                      <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
-                        {formatAdded(detail.added, t)}
-                      </span>
-                    </div>
-                  </li>
-                </ul>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-body text-[18px] font-bold leading-tight text-[color:var(--blue-600)]">
+                  {lead.name}
+                </h1>
+                <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
+                  {vehicleInterestLabel}: <span className="font-semibold">{lead.interestedIn}</span>
+                </p>
+                <p className="mt-1 text-[14px] leading-tight text-[color:var(--gray-300)]">
+                  {leadStatusLabel}: <span className="font-semibold">{leadStatusValue}</span>
+                </p>
               </div>
-
-              <div className="flex w-[92px] shrink-0 flex-col items-center justify-center border-l border-[#e4e4e4] pl-3">
-                <div className="relative flex flex-col items-center">
-                  <ActionCircle
-                    color="border-[color:var(--blue-600)] bg-[color:var(--blue-600)] text-white"
-                    testid="lead-detail-call"
-                    onClick={() => navigate(`/leads/${lead.id}/call`)}
-                  >
-                    <Phone className="h-5 w-5" strokeWidth={2.25} fill="currentColor" />
-                  </ActionCircle>
-                  {lead.recommendedAction === "call" ? (
-                    <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                      <RecommendedPill />
-                    </div>
-                  ) : null}
-                </div>
-                <div
-                  className={
-                    lead.recommendedAction === "call" ? "relative mt-7" : "relative mt-5"
-                  }
-                >
-                  <ActionCircle
-                    color="border-[color:var(--success)] bg-[color:var(--success)] text-white"
-                    testid="lead-detail-whatsapp"
-                    onClick={() => openWhatsAppChat(detail.phoneDisplay)}
-                  >
-                    <WhatsAppIcon size={22} />
-                  </ActionCircle>
-                  {lead.recommendedAction === "whatsapp" ? (
-                    <div className="absolute left-1/2 top-full z-[1] -translate-x-1/2 -translate-y-1/2">
-                      <RecommendedPill />
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+              <span className="inline-flex max-w-[min(100%,12rem)] shrink-0 items-center gap-1.5 rounded-full border border-black/[0.04] bg-[color:var(--blue-300)] px-2.5 py-1.5 font-body text-[12px] font-medium leading-snug text-[color:var(--gray-300)]">
+                <Star
+                  className="h-3.5 w-3.5 shrink-0 text-[color:var(--blue-600)]"
+                  fill="currentColor"
+                  strokeWidth={0}
+                  aria-hidden
+                />
+                <span className="min-w-0 truncate">{t.aiFollowUp}</span>
+              </span>
             </div>
+
+            <ul className="mt-4 flex flex-col gap-2.5">
+              <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
+                <DetailIconChip>
+                  <Phone className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <span className="pt-0.5 font-semibold">{maskPhoneLastFour(detail.phoneDisplay)}</span>
+              </li>
+              <li className="flex items-start gap-2.5 text-[14px] text-[color:var(--gray-300)]">
+                <DetailIconChip>
+                  <MapPin className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <span className="pt-0.5 font-semibold">{detail.location}</span>
+              </li>
+              <li className="flex items-start gap-2.5 text-[14px]">
+                <DetailIconChip>
+                  <Funnel className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                  <span className="shrink-0 text-[color:var(--gray-200)]">
+                    {t.leadDetail.leadSource} :
+                  </span>
+                  <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
+                    {t.leadDetail.leadSources[detail.leadSourceKey] ?? detail.leadSourceKey}
+                  </span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5 text-[14px]">
+                <DetailIconChip>
+                  <Calendar className="text-[color:var(--blue-600)]" strokeWidth={2.25} />
+                </DetailIconChip>
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1 gap-y-0.5 pt-0.5">
+                  <span className="shrink-0 text-[color:var(--gray-200)]">
+                    {t.leadDetail.added} :
+                  </span>
+                  <span className="min-w-0 font-semibold text-[color:var(--gray-300)]">
+                    {formatAdded(detail.added, t)}
+                  </span>
+                </div>
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              data-testid="lead-detail-move-to-human"
+              onClick={() => moveAiLeadToHuman(lead.id)}
+              className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--blue-600)] font-body text-[14px] font-semibold text-white shadow-none transition-colors hover:bg-[color:var(--blue-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--blue-400)] focus-visible:ring-offset-2"
+            >
+              <User className="h-[18px] w-[18px] shrink-0" strokeWidth={2.1} />
+              Move to human
+            </button>
           </>
         )}
       </DetailCard>
@@ -365,46 +473,75 @@ export default function LeadDetails() {
       {/* Call history */}
       <DetailCard className="mt-4">
         <h2 className="font-body text-[16px] font-bold text-[#111827]">
-          {t.leadDetail.callHistory}
+          {realRecentCalls.length > 0 ? t.performance.recentCalls : t.leadDetail.callHistory}
         </h2>
-        <ul className="mt-3 divide-y divide-[#F3F4F6]">
-          {detail.callHistory.map((call) => (
-            <li
-              key={`${call.titleKey}-${call.ago.value}-${call.ago.unit}`}
-              className="flex gap-4 py-4 first:pt-0"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
-                <Phone className="h-4 w-4 text-[#2563EB]" strokeWidth={2} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-[14px] font-bold leading-snug text-[#111827]">
-                    {t.leadDetail.calls[call.titleKey]}
-                  </p>
-                  <span className="shrink-0 text-right text-[12px] text-[#9CA3AF]">
-                    {formatAdded(call.ago, t)}
-                  </span>
+        {realRecentCalls.length > 0 ? (
+          <div className="mt-3 flex flex-col gap-3">
+            {realRecentCalls.map((row) => (
+              <RecentCallCard
+                key={row.id}
+                name={row.name}
+                callUuid={row.callUuid}
+                callType={row.callType}
+                outcome={row.outcome}
+                timeLabel={row.timeLabel}
+                avatarVariant={row.avatarVariant}
+                actionLabel="View details"
+                onViewFeedback={() => setRecordingCall(row)}
+                testId={`lead-recent-call-${row.id}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <ul className="mt-3 divide-y divide-[#F3F4F6]">
+            {detail.callHistory.map((call) => (
+              <li
+                key={`${call.titleKey}-${call.ago.value}-${call.ago.unit}`}
+                className="flex gap-4 py-4 first:pt-0"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
+                  <Phone className="h-4 w-4 text-[#2563EB]" strokeWidth={2} />
                 </div>
-                <div className="mt-1 flex items-start justify-between gap-3">
-                  <p className="text-[13px] font-normal leading-snug text-[#4B5563]">
-                    {t.leadDetail.duration}: {call.durationMin} min {call.durationSec} sec
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-[14px] font-bold leading-snug text-[#111827]">
+                      {t.leadDetail.calls[call.titleKey]}
+                    </p>
+                    <span className="shrink-0 text-right text-[12px] text-[#9CA3AF]">
+                      {formatAdded(call.ago, t)}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-start justify-between gap-3">
+                    <p className="text-[13px] font-normal leading-snug text-[#4B5563]">
+                      {t.leadDetail.duration}: {call.durationMin} min {call.durationSec} sec
+                    </p>
+                    <span
+                      className={`shrink-0 text-right text-[13px] font-bold ${
+                        call.status === "new" ? "text-[#D97706]" : "text-[#15803D]"
+                      }`}
+                    >
+                      {t.leadDetail.callStatus[call.status]}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-[13px] leading-relaxed text-[#4B5563]">
+                    {t.leadDetail.calls[call.notesKey]}
                   </p>
-                  <span
-                    className={`shrink-0 text-right text-[13px] font-bold ${
-                      call.status === "new" ? "text-[#D97706]" : "text-[#15803D]"
-                    }`}
-                  >
-                    {t.leadDetail.callStatus[call.status]}
-                  </span>
                 </div>
-                <p className="mt-3 text-[13px] leading-relaxed text-[#4B5563]">
-                  {t.leadDetail.calls[call.notesKey]}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
       </DetailCard>
+
+      <CallRecordingDrawer
+        open={Boolean(recordingCall)}
+        onOpenChange={(open) => {
+          if (!open) setRecordingCall(null);
+        }}
+        callUuid={recordingCall?.callUuid || ""}
+        durationSeconds={recordingCall?.durationSeconds || 0}
+        onAudioError={() => {}}
+      />
 
       {/* Recommended models */}
       <div className="mt-4 pb-5">

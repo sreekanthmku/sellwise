@@ -25,6 +25,7 @@ export function RecentCallCard({
   outcome,
   timeLabel,
   avatarVariant = "purple",
+  actionLabel,
   onViewFeedback,
   testId,
 }) {
@@ -83,7 +84,7 @@ export function RecentCallCard({
                 !callUuid && "cursor-not-allowed opacity-45",
               )}
             >
-              {t.performance.viewFeedback}
+              {actionLabel ?? t.performance.viewFeedback}
             </button>
           </div>
         </div>
