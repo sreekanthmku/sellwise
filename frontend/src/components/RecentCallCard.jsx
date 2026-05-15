@@ -32,7 +32,7 @@ export function RecentCallCard({
   const { t } = useLanguage();
   const typeLabel =
     callType === "ai" ? t.performance.aiCall : t.performance.humanCall;
-  const outcomeLabel = t.performance.outcomes[outcome];
+  const outcomeLabel = t.performance.outcomes?.[outcome] ?? "";
 
   return (
     <article
@@ -52,11 +52,6 @@ export function RecentCallCard({
             <p className="truncate font-body text-[16px] font-bold leading-tight text-[color:var(--gray-300)]">
               {name}
             </p>
-            {callUuid ? (
-              <p className="mt-0.5 truncate text-[12px] font-medium leading-snug text-[color:var(--gray-200)]">
-                UUID: {callUuid}
-              </p>
-            ) : null}
             <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
               <span className="text-[13px] font-normal leading-snug text-[color:var(--gray-200)]">
                 {typeLabel}
@@ -75,17 +70,19 @@ export function RecentCallCard({
             <span className="text-[12px] font-medium leading-none text-[color:var(--gray-200)]">
               {timeLabel}
             </span>
-            <button
-              type="button"
-              disabled={!callUuid}
-              onClick={onAction}
-              className={cn(
-                "text-[13px] font-semibold leading-none text-[color:var(--blue-600)]",
-                !callUuid && "cursor-not-allowed opacity-45",
-              )}
-            >
-              {actionLabel ?? t.performance.viewFeedback}
-            </button>
+            {actionLabel != null && (
+              <button
+                type="button"
+                disabled={!callUuid}
+                onClick={onAction}
+                className={cn(
+                  "text-[13px] font-semibold leading-none text-[color:var(--blue-600)]",
+                  !callUuid && "cursor-not-allowed opacity-45",
+                )}
+              >
+                {actionLabel}
+              </button>
+            )}
           </div>
         </div>
       </div>

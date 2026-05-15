@@ -10,11 +10,15 @@ import {
 } from "@/components/ui/drawer";
 import { defaultApiBase } from "@/vobiz/constants";
 
+function isAgentSpeaker(speaker) {
+  const s = String(speaker || "").trim().toLowerCase();
+  return s === "agent" || s === "you";
+}
+
 function speakerLabel(speaker) {
   const s = String(speaker || "").trim().toLowerCase();
-  if (s === "agent" || s === "you") return "You";
-  if (s === "customer") return "Customer";
-  return s ? s.replace(/\b\w/g, (c) => c.toUpperCase()) : "Speaker";
+  if (s === "agent" || s === "you") return "YOU";
+  return String(speaker || "").trim().toUpperCase() || "SPEAKER";
 }
 
 function transcriptRowsFromSegments(segments) {
@@ -29,6 +33,7 @@ function transcriptRowsFromSegments(segments) {
         time: String(segment.time || "").trim(),
         text,
         speaker: speakerLabel(segment.speaker),
+        isAgent: isAgentSpeaker(segment.speaker),
       };
     })
     .filter(Boolean);
@@ -42,14 +47,13 @@ function splitTranscriptLines(transcript) {
     .filter(Boolean)
     .map((line, index) => {
       const match = line.match(/^(?:(\d{1,2}:\d{2})\s*)?(?:(Agent|Customer|You|Speaker)\s*:\s*)?(.*)$/i);
-      const time = match?.[1] ?? "";
-      const speaker = speakerLabel(match?.[2] || "");
-      const text = (match?.[3] || line).trim();
+      const rawSpeaker = match?.[2] || "";
       return {
         id: `${index}-${line.slice(0, 24)}`,
-        time,
-        text,
-        speaker,
+        time: match?.[1] ?? "",
+        text: (match?.[3] || line).trim(),
+        speaker: speakerLabel(rawSpeaker),
+        isAgent: isAgentSpeaker(rawSpeaker),
       };
     });
 }
@@ -273,30 +277,29 @@ export function CallRecordingDrawer({
             </button>
           </div>
 
-          <div className="scrollbar-hide mt-5 flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="scrollbar-hide mt-5 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {transcriptLoading ? (
-              <p className="rounded-[12px] bg-[#F7F8FB] px-4 py-4 font-body text-[13px] font-medium text-[color:var(--gray-200)]">
+              <p className="rounded-xl bg-[#f3f4f6] px-4 py-3 font-body text-[13px] text-[color:var(--gray-200)]">
                 Loading transcript…
               </p>
             ) : fallbackTranscriptRows.length > 0 ? (
-              fallbackTranscriptRows.map((row, index) => (
-                <div
-                  key={row.id}
-                  className={`rounded-[12px] px-4 py-3 ${
-                    index % 2 === 0 ? "bg-[#F7F8FB]" : "bg-white"
-                  }`}
-                >
-                  <p className="font-body text-[12px] font-bold text-[#30343b]">
-                    {row.time ? `${row.time} ` : ""}
-                    {row.speaker}
-                  </p>
-                  <p className="mt-3 whitespace-pre-wrap pl-8 font-body text-[14px] leading-snug text-[#5f6368]">
-                    {row.text}
-                  </p>
+              fallbackTranscriptRows.map((row) => (
+                <div key={row.id} className="flex gap-3">
+                  <span className="mt-0.5 w-8 shrink-0 font-body text-[11px] tabular-nums text-[color:var(--gray-200)]">
+                    {row.time}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-body text-[11px] font-bold ${row.isAgent ? "text-[color:var(--blue-600)]" : "text-[#9233e9]"}`}>
+                      {row.speaker}
+                    </p>
+                    <p className="mt-0.5 font-body text-[13px] leading-snug text-[color:var(--gray-300)]">
+                      {row.text}
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (
-              <p className="rounded-[12px] bg-[#F7F8FB] px-4 py-4 font-body text-[13px] font-medium text-[color:var(--gray-200)]">
+              <p className="rounded-xl bg-[#f3f4f6] px-4 py-3 font-body text-[13px] text-[color:var(--gray-200)]">
                 Transcript is not available yet.
               </p>
             )}

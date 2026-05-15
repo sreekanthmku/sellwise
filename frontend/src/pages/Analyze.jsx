@@ -181,7 +181,6 @@ export default function Analyze() {
         <h1 className="font-suzuki text-lg font-bold leading-tight text-[color:var(--gray-300)] sm:text-xl">
           {t.analyze.title}
         </h1>
-        <p className="mt-2 text-sm leading-snug text-[color:var(--gray-200)] sm:text-base">{t.analyze.subtitle}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-none pb-8 pt-4">

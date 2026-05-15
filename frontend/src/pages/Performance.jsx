@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { RecentCallCard } from "@/components/RecentCallCard";
+import { CallSummaryDrawer } from "@/components/CallSummaryDrawer";
 import {
   performanceRecentCalls,
   performanceToday,
@@ -80,6 +81,18 @@ export default function Performance() {
           : undefined,
     };
     navigate(`/leads/${encodeURIComponent(row.leadId)}/call-details`, { state });
+  };
+
+  const [summaryDrawerOpen, setSummaryDrawerOpen] = useState(false);
+  const [summaryDrawerRow, setSummaryDrawerRow] = useState(null);
+
+  const openSummaryDrawer = (row) => {
+    if (!row.callUuid || typeof row.callUuid !== "string") {
+      toast.message(t.callDetails.feedbackToast);
+      return;
+    }
+    setSummaryDrawerRow(row);
+    setSummaryDrawerOpen(true);
   };
 
   const liveRecentCalls = useMemo(() => {
@@ -330,20 +343,43 @@ export default function Performance() {
                   callType={row.callType}
                   outcome={row.outcome}
                   avatarVariant={row.avatarVariant}
-                  timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
+                  timeLabel={row.timeLabel || t.performance.sampleTimes?.[row.timeKey] || ""}
                   callUuid={row.callUuid}
-                  actionLabel={
-                    row.callType === "ai" ? t.performance.viewDetails : t.performance.viewFeedback
-                  }
-                  onAction={() =>
-                    row.callType === "ai" ? openCallDetails(row) : openCallFeedback(row)
-                  }
+                  actionLabel={row.durationSeconds > 0 ? t.performance.view : null}
+                  onAction={row.durationSeconds > 0 ? () => openSummaryDrawer(row) : undefined}
                 />
               ))
             )}
           </div>
         </section>
       </div>
+
+      {summaryDrawerRow && (
+        <CallSummaryDrawer
+          open={summaryDrawerOpen}
+          onOpenChange={setSummaryDrawerOpen}
+          name={summaryDrawerRow.name}
+          callType={summaryDrawerRow.callType === "ai" ? "AI Call" : "Human Call"}
+          dateLabel={summaryDrawerRow.timeLabel}
+          duration={
+            summaryDrawerRow.durationSeconds > 0
+              ? `${Math.floor(summaryDrawerRow.durationSeconds / 60)}m ${summaryDrawerRow.durationSeconds % 60}s`
+              : undefined
+          }
+          durationSeconds={summaryDrawerRow.durationSeconds || 0}
+          callUuid={summaryDrawerRow.callUuid}
+          onCallBack={() => {
+            setSummaryDrawerOpen(false);
+            if (summaryDrawerRow.leadId) {
+              navigate(`/leads/${encodeURIComponent(summaryDrawerRow.leadId)}`);
+            }
+          }}
+          onSaveNote={() => {
+            toast.success("Note saved.");
+            setSummaryDrawerOpen(false);
+          }}
+        />
+      )}
     </AppScreen>
   );
 }

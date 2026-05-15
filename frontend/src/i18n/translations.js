@@ -269,6 +269,7 @@ export const translations = {
         followUp: "Follow-up",
         notInterested: "Not Interested",
       },
+      view: "View",
       viewDetails: "View Details",
       viewFeedback: "View Feedback",
       sampleTimes: {
@@ -749,6 +750,7 @@ export const translations = {
         followUp: "Tindak lanjut",
         notInterested: "Tidak tertarik",
       },
+      view: "Lihat",
       viewDetails: "Lihat detail",
       viewFeedback: "Lihat umpan balik",
       sampleTimes: {
@@ -1229,6 +1231,7 @@ export const translations = {
         followUp: "フォロー",
         notInterested: "関心なし",
       },
+      view: "表示",
       viewDetails: "詳細を見る",
       viewFeedback: "フィードバックを見る",
       sampleTimes: {

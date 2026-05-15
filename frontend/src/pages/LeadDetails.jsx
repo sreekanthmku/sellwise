@@ -13,11 +13,12 @@ import {
   User,
   Wallet,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
-import { CallRecordingDrawer } from "@/components/CallRecordingDrawer";
+import { CallSummaryDrawer } from "@/components/CallSummaryDrawer";
 import { RecentCallCard } from "@/components/RecentCallCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { useLeadsData } from "@/context/LeadsDataContext";
@@ -493,61 +494,52 @@ export default function LeadDetails() {
                 outcome={row.outcome}
                 timeLabel={formatCallDuration(row.durationSeconds)}
                 avatarVariant={row.avatarVariant}
-                actionLabel="View details"
-                onAction={() => setRecordingCall(row)}
+                actionLabel={row.durationSeconds > 0 ? t.performance.view : null}
+                onAction={row.durationSeconds > 0 ? () => setRecordingCall(row) : undefined}
               />
             ))}
           </div>
         ) : (
-          <ul className="mt-3 divide-y divide-[#F3F4F6]">
+          <div className="mt-3 flex flex-col gap-3">
             {detail.callHistory.map((call) => (
-              <li
+              <RecentCallCard
                 key={`${call.titleKey}-${call.ago.value}-${call.ago.unit}`}
-                className="flex gap-4 py-4 first:pt-0"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
-                  <Phone className="h-4 w-4 text-[#2563EB]" strokeWidth={2} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-[14px] font-bold leading-snug text-[#111827]">
-                      {t.leadDetail.calls[call.titleKey]}
-                    </p>
-                    <span className="shrink-0 text-right text-[12px] text-[#9CA3AF]">
-                      {formatAdded(call.ago, t)}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-start justify-between gap-3">
-                    <p className="text-[13px] font-normal leading-snug text-[#4B5563]">
-                      {t.leadDetail.duration}: {call.durationMin} min {call.durationSec} sec
-                    </p>
-                    <span
-                      className={`shrink-0 text-right text-[13px] font-bold ${
-                        call.status === "new" ? "text-[#D97706]" : "text-[#15803D]"
-                      }`}
-                    >
-                      {t.leadDetail.callStatus[call.status]}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-[13px] leading-relaxed text-[#4B5563]">
-                    {t.leadDetail.calls[call.notesKey]}
-                  </p>
-                </div>
-              </li>
+                name={t.leadDetail.calls[call.titleKey]}
+                callType="human"
+                outcome={call.status === "new" ? "followUp" : "interested"}
+                avatarVariant="purple"
+                timeLabel={formatAdded(call.ago, t)}
+                callUuid={null}
+                actionLabel={null}
+              />
             ))}
-          </ul>
+          </div>
         )}
       </DetailCard>
 
-      <CallRecordingDrawer
-        open={Boolean(recordingCall)}
-        onOpenChange={(open) => {
-          if (!open) setRecordingCall(null);
-        }}
-        callUuid={recordingCall?.callUuid || ""}
-        durationSeconds={recordingCall?.durationSeconds || 0}
-        onAudioError={() => {}}
-      />
+      {recordingCall && (
+        <CallSummaryDrawer
+          open={Boolean(recordingCall)}
+          onOpenChange={(open) => {
+            if (!open) setRecordingCall(null);
+          }}
+          name={recordingCall.name}
+          callType={recordingCall.callType === "ai" ? "AI Call" : "Human Call"}
+          dateLabel={recordingCall.timeLabel}
+          duration={
+            recordingCall.durationSeconds > 0
+              ? `${Math.floor(recordingCall.durationSeconds / 60)}m ${recordingCall.durationSeconds % 60}s`
+              : undefined
+          }
+          durationSeconds={recordingCall.durationSeconds || 0}
+          callUuid={recordingCall.callUuid || ""}
+          onCallBack={() => setRecordingCall(null)}
+          onSaveNote={() => {
+            toast.success("Note saved.");
+            setRecordingCall(null);
+          }}
+        />
+      )}
 
       {/* Recommended models */}
       <div className="mt-4 pb-5">
