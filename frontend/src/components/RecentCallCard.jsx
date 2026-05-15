@@ -16,7 +16,7 @@ const OUTCOME_TEXT = {
 };
 
 /**
- * Recent call row: avatar | name + (call type + status inline) | time + View Feedback.
+ * Recent call row: avatar | name + (call type + status inline) | time + action button.
  */
 export function RecentCallCard({
   name,
@@ -26,7 +26,7 @@ export function RecentCallCard({
   timeLabel,
   avatarVariant = "purple",
   actionLabel,
-  onViewFeedback,
+  onAction,
   testId,
 }) {
   const { t } = useLanguage();
@@ -78,7 +78,7 @@ export function RecentCallCard({
             <button
               type="button"
               disabled={!callUuid}
-              onClick={onViewFeedback}
+              onClick={onAction}
               className={cn(
                 "text-[13px] font-semibold leading-none text-[color:var(--blue-600)]",
                 !callUuid && "cursor-not-allowed opacity-45",

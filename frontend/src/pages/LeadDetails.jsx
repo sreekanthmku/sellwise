@@ -18,7 +18,6 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { AppScreen } from "@/components/AppScreen";
 import { CallRecordingDrawer } from "@/components/CallRecordingDrawer";
-import { ActionCircle, RecommendedPill } from "@/components/LeadCard";
 import { RecentCallCard } from "@/components/RecentCallCard";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 import { useLeadsData } from "@/context/LeadsDataContext";
@@ -62,6 +61,13 @@ const DetailIconChip = ({ children }) => (
     {children}
   </div>
 );
+
+function formatCallDuration(totalSeconds) {
+  const safeSeconds = Number.isFinite(totalSeconds) && totalSeconds > 0 ? Math.floor(totalSeconds) : 0;
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
 
 function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
@@ -480,15 +486,15 @@ export default function LeadDetails() {
             {realRecentCalls.map((row) => (
               <RecentCallCard
                 key={row.id}
-                name={row.name}
+                testId={`lead-recent-call-${row.id}`}
+                name={t.callDetails.outgoingCall}
                 callUuid={row.callUuid}
                 callType={row.callType}
                 outcome={row.outcome}
-                timeLabel={row.timeLabel}
+                timeLabel={formatCallDuration(row.durationSeconds)}
                 avatarVariant={row.avatarVariant}
                 actionLabel="View details"
-                onViewFeedback={() => setRecordingCall(row)}
-                testId={`lead-recent-call-${row.id}`}
+                onAction={() => setRecordingCall(row)}
               />
             ))}
           </div>

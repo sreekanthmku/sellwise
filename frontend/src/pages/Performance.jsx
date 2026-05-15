@@ -61,6 +61,27 @@ export default function Performance() {
     navigate("/call-feedback", { state });
   };
 
+  const openCallDetails = (row) => {
+    if (!row.leadId || typeof row.leadId !== "string") {
+      toast.message(t.callDetails.feedbackToast);
+      return;
+    }
+    const state = {
+      callUuid: row.callUuid,
+      displayName: typeof row.name === "string" ? row.name : "Unknown",
+      editable: false,
+      durationSeconds:
+        typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
+          ? Math.max(0, Math.floor(row.durationSeconds))
+          : undefined,
+      endedAt:
+        typeof row.endedAtIso === "string" && row.endedAtIso.length > 0
+          ? row.endedAtIso
+          : undefined,
+    };
+    navigate(`/leads/${encodeURIComponent(row.leadId)}/call-details`, { state });
+  };
+
   const liveRecentCalls = useMemo(() => {
     if (!Array.isArray(callHistory) || callHistory.length === 0) return [];
     return callHistory.map((row, index) => {
@@ -120,11 +141,6 @@ export default function Performance() {
   const mergedRecentCalls = useMemo(() => {
     const allLeads = [...humanLeads, ...aiLeads];
 
-    const resolveLeadName = (rawName) => {
-      const matchedLead = findLeadByPhoneDisplay(allLeads, rawName);
-      return matchedLead?.name || rawName;
-    };
-
     const mapAiRow = (row) => {
       const endedDate = row.endedAtIso ? new Date(row.endedAtIso) : null;
       const hasValidDate = endedDate && !Number.isNaN(endedDate.getTime());
@@ -132,9 +148,10 @@ export default function Performance() {
         ? endedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : t.performance.today;
       const rawName = typeof row.name === "string" && row.name.trim() ? row.name.trim() : "AI call";
+      const matchedLead = findLeadByPhoneDisplay(allLeads, rawName);
       return {
         id: row.id,
-        name: resolveLeadName(rawName),
+        name: matchedLead?.name || rawName,
         callType: "ai",
         outcome: ["interested", "followUp", "notInterested"].includes(row.outcome)
           ? row.outcome
@@ -142,7 +159,9 @@ export default function Performance() {
         avatarVariant: "green",
         timeLabel,
         callUuid: row.callUuid || null,
-        leadId: row.leadId != null && String(row.leadId).length > 0 ? String(row.leadId) : null,
+        leadId:
+          matchedLead?.id ||
+          (row.leadId != null && String(row.leadId).length > 0 ? String(row.leadId) : null),
         durationSeconds:
           typeof row.durationSeconds === "number" && Number.isFinite(row.durationSeconds)
             ? Math.max(0, Math.floor(row.durationSeconds))
@@ -313,7 +332,12 @@ export default function Performance() {
                   avatarVariant={row.avatarVariant}
                   timeLabel={row.timeLabel || t.performance.sampleTimes[row.timeKey]}
                   callUuid={row.callUuid}
-                  onViewFeedback={() => openCallFeedback(row)}
+                  actionLabel={
+                    row.callType === "ai" ? t.performance.viewDetails : t.performance.viewFeedback
+                  }
+                  onAction={() =>
+                    row.callType === "ai" ? openCallDetails(row) : openCallFeedback(row)
+                  }
                 />
               ))
             )}

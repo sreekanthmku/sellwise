@@ -89,6 +89,7 @@ export const translations = {
       callSummary: "Call Summary",
       callDisposition: "Call Disposition",
       aiSummary: "AI Summary",
+      outgoingCall: "Outgoing call",
       callOutcome: "Call Outcome",
       leadStatusLabel: "Lead Status",
       nextFollowUp: "Next Follow-Up",
@@ -268,6 +269,7 @@ export const translations = {
         followUp: "Follow-up",
         notInterested: "Not Interested",
       },
+      viewDetails: "View Details",
       viewFeedback: "View Feedback",
       sampleTimes: {
         t915: "9:15 AM",
@@ -567,6 +569,7 @@ export const translations = {
       callSummary: "Ringkasan Panggilan",
       callDisposition: "Disposisi Panggilan",
       aiSummary: "Ringkasan AI",
+      outgoingCall: "Panggilan keluar",
       callOutcome: "Hasil Panggilan",
       leadStatusLabel: "Status Prospek",
       nextFollowUp: "Tindak Lanjut Berikutnya",
@@ -746,6 +749,7 @@ export const translations = {
         followUp: "Tindak lanjut",
         notInterested: "Tidak tertarik",
       },
+      viewDetails: "Lihat detail",
       viewFeedback: "Lihat umpan balik",
       sampleTimes: {
         t915: "09:15",
@@ -1045,6 +1049,7 @@ export const translations = {
       callSummary: "通話サマリー",
       callDisposition: "通話結果区分",
       aiSummary: "AIサマリー",
+      outgoingCall: "発信通話",
       callOutcome: "通話アウトカム",
       leadStatusLabel: "リードステータス",
       nextFollowUp: "次回フォロー",
@@ -1224,6 +1229,7 @@ export const translations = {
         followUp: "フォロー",
         notInterested: "関心なし",
       },
+      viewDetails: "詳細を見る",
       viewFeedback: "フィードバックを見る",
       sampleTimes: {
         t915: "9:15",

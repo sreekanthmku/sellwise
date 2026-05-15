@@ -6,6 +6,7 @@ import {
   Loader2,
   MapPin,
   Sparkles,
+  Volume2,
 } from "lucide-react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CallRecordingDrawer } from "@/components/CallRecordingDrawer";
 import { useLeadsData } from "@/context/LeadsDataContext";
 import { defaultApiBase } from "@/vobiz/constants";
 
@@ -137,6 +139,7 @@ export default function CallDetails() {
     location.state?.analysisResult != null && typeof location.state.analysisResult === "object"
       ? location.state.analysisResult
       : null;
+  const isEditable = location.state?.editable !== false;
 
   const [callOutcome, setCallOutcome] = useState("interested");
   const [leadStatus, setLeadStatus] = useState("new");
@@ -146,6 +149,7 @@ export default function CallDetails() {
   const [analysisLoading, setAnalysisLoading] = useState(
     !seedAnalysisFromNav && Boolean(location.state?.callUuid),
   );
+  const [recordingOpen, setRecordingOpen] = useState(false);
 
   useEffect(() => {
     if (!lead) return;
@@ -282,6 +286,23 @@ export default function CallDetails() {
                 {formatDurationShort(durationSeconds)}
               </span>
             </div>
+            {!isEditable ? (
+              <button
+                type="button"
+                data-testid="call-details-recording"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2563eb] py-3.5 font-body text-[15px] font-semibold text-white shadow-sm transition-opacity hover:opacity-95 active:opacity-90"
+                onClick={() => {
+                  if (!location.state?.callUuid || typeof location.state.callUuid !== "string") {
+                    toast.info(t.callFeedbackPage.recordingUnavailable);
+                    return;
+                  }
+                  setRecordingOpen(true);
+                }}
+              >
+                <span>{t.callFeedbackPage.callRecording}</span>
+                <Volume2 className="h-5 w-5 shrink-0" strokeWidth={2.25} aria-hidden />
+              </button>
+            ) : null}
           </DetailCard>
 
           {/* Disposition */}
@@ -294,8 +315,14 @@ export default function CallDetails() {
                 <Label className="mb-1.5 block font-body text-[13px] font-medium text-[#6B7280]">
                   {t.callDetails.callOutcome}
                 </Label>
-                <Select value={callOutcome} onValueChange={setCallOutcome}>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white font-body text-[14px] text-[#111827] focus:ring-[color:var(--blue-400)]">
+                <Select
+                  value={callOutcome}
+                  onValueChange={setCallOutcome}
+                  disabled={!isEditable}
+                >
+                  <SelectTrigger
+                    className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white font-body text-[14px] text-[#111827] focus:ring-[color:var(--blue-400)] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -311,8 +338,14 @@ export default function CallDetails() {
                 <Label className="mb-1.5 block font-body text-[13px] font-medium text-[#6B7280]">
                   {t.callDetails.leadStatusLabel}
                 </Label>
-                <Select value={leadStatus} onValueChange={setLeadStatus}>
-                  <SelectTrigger className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white font-body text-[14px] text-[#111827] focus:ring-[color:var(--blue-400)]">
+                <Select
+                  value={leadStatus}
+                  onValueChange={setLeadStatus}
+                  disabled={!isEditable}
+                >
+                  <SelectTrigger
+                    className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white font-body text-[14px] text-[#111827] focus:ring-[color:var(--blue-400)] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -331,7 +364,8 @@ export default function CallDetails() {
                   data-testid="call-details-next-followup"
                   value={nextFollowUp}
                   onChange={(e) => setNextFollowUp(e.target.value)}
-                  className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white px-3 font-body text-[14px] text-[#111827] shadow-none focus-visible:ring-[color:var(--blue-400)]"
+                  disabled={!isEditable}
+                  className="h-11 w-full rounded-xl border-[#e4e4e4] bg-white px-3 font-body text-[14px] text-[#111827] shadow-none focus-visible:ring-[color:var(--blue-400)] disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
               <div>
@@ -341,7 +375,8 @@ export default function CallDetails() {
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="min-h-[120px] rounded-xl border-[#e4e4e4] font-body text-[14px] text-[#374151] focus-visible:ring-[color:var(--blue-400)]"
+                  disabled={!isEditable}
+                  className="min-h-[120px] rounded-xl border-[#e4e4e4] font-body text-[14px] text-[#374151] focus-visible:ring-[color:var(--blue-400)] disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
             </div>
@@ -388,6 +423,13 @@ export default function CallDetails() {
           </section>
         </div>
       </div>
+      <CallRecordingDrawer
+        open={recordingOpen}
+        onOpenChange={setRecordingOpen}
+        callUuid={typeof location.state?.callUuid === "string" ? location.state.callUuid : ""}
+        durationSeconds={durationSeconds}
+        onAudioError={() => toast.error(t.callFeedbackPage.recordingUnavailable)}
+      />
 
       {/* Fixed above BottomNav — stays on screen when main or page scrolls */}
       <div
@@ -395,37 +437,39 @@ export default function CallDetails() {
         style={{ bottom: "var(--sellwise-bottom-nav-height)" }}
         data-testid="call-details-actions"
       >
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            data-testid="call-details-feedback"
-            className="h-11 flex-1 rounded-xl border-2 border-[color:var(--blue-600)] bg-white font-body text-[14px] font-semibold text-[color:var(--blue-600)] shadow-none hover:bg-[color:var(--blue-200)]/40"
-            onClick={() =>
-              navigate(`/leads/${leadId}/call-feedback`, {
-                state: {
-                  durationSeconds,
-                  endedAt: endedAt.toISOString(),
-                  callUuid: location.state?.callUuid ?? null,
-                  analysisResult: analysisResult ?? undefined,
-                },
-              })
-            }
-          >
-            {t.callDetails.callFeedback}
-          </Button>
-          <Button
-            type="button"
-            data-testid="call-details-save"
-            className="h-11 flex-1 rounded-xl bg-[color:var(--blue-600)] font-body text-[14px] font-semibold text-white shadow-none hover:bg-[color:var(--blue-700)]"
-            onClick={() => {
-              toast.success(t.callDetails.savedToast);
-              navigate(`/leads/${leadId}`);
-            }}
-          >
-            {t.callDetails.saveAndClose}
-          </Button>
-        </div>
+        {isEditable ? (
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              data-testid="call-details-feedback"
+              className="h-11 flex-1 rounded-xl border-2 border-[color:var(--blue-600)] bg-white font-body text-[14px] font-semibold text-[color:var(--blue-600)] shadow-none hover:bg-[color:var(--blue-200)]/40"
+              onClick={() =>
+                navigate(`/leads/${leadId}/call-feedback`, {
+                  state: {
+                    durationSeconds,
+                    endedAt: endedAt.toISOString(),
+                    callUuid: location.state?.callUuid ?? null,
+                    analysisResult: analysisResult ?? undefined,
+                  },
+                })
+              }
+            >
+              {t.callDetails.callFeedback}
+            </Button>
+            <Button
+              type="button"
+              data-testid="call-details-save"
+              className="h-11 flex-1 rounded-xl bg-[color:var(--blue-600)] font-body text-[14px] font-semibold text-white shadow-none hover:bg-[color:var(--blue-700)]"
+              onClick={() => {
+                toast.success(t.callDetails.savedToast);
+                navigate(`/leads/${leadId}`);
+              }}
+              >
+                {t.callDetails.saveAndClose}
+              </Button>
+          </div>
+        ) : null}
       </div>
     </AppScreen>
   );
